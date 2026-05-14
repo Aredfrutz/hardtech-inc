@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,19 +22,21 @@ import {
   Wrench, 
   Users, 
   CreditCard,
-  Info
+  Info,
+  Lock
 } from 'lucide-react';
 
 export default function CourseDetailPage() {
   const { id } = useParams();
   const { firestore } = useFirestore();
+  const { user, loading: userLoading } = useUser();
 
   const courseRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
     return doc(firestore, 'courses', id as string);
   }, [firestore, id]);
 
-  const { data: course, loading } = useDoc(courseRef);
+  const { data: course, loading: courseLoading } = useDoc(courseRef);
 
   // Fetch instructors if available
   const instructorsQuery = useMemoFirebase(() => {
@@ -50,7 +52,7 @@ export default function CourseDetailPage() {
     return found ? found.imageUrl : PlaceHolderImages[0].imageUrl;
   };
 
-  if (loading) {
+  if (userLoading || (courseLoading && !course)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -58,11 +60,27 @@ export default function CourseDetailPage() {
     );
   }
 
+  // Security Check: Only allow students or admins to see the details
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-32 text-center max-w-md">
+        <Lock className="h-16 w-16 text-muted-foreground opacity-20 mx-auto mb-6" />
+        <h1 className="text-3xl font-bold mb-4 font-headline tracking-tight uppercase">Registry Restricted</h1>
+        <p className="text-muted-foreground mb-8 text-xs uppercase font-bold tracking-widest leading-loose">
+          Detailed technical curricula and syllabus packets are exclusive to registered enrollees and faculty.
+        </p>
+        <Button asChild className="w-full h-12 rounded-none uppercase font-bold text-[10px] tracking-widest">
+          <Link href="/">Return to Authentication</Link>
+        </Button>
+      </div>
+    );
+  }
+
   if (!course) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-3xl font-bold mb-4">Course not found</h2>
-        <Button asChild variant="outline">
+        <h2 className="text-3xl font-bold mb-4 uppercase tracking-tighter">Program not found</h2>
+        <Button asChild variant="outline" className="rounded-none border-primary/20">
           <Link href="/courses">Return to Catalog</Link>
         </Button>
       </div>
@@ -73,7 +91,7 @@ export default function CourseDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <Link href="/courses" className="flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors group">
+      <Link href="/courses" className="flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors group text-[10px] font-bold uppercase tracking-widest">
         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Catalog
       </Link>
 
@@ -81,11 +99,11 @@ export default function CourseDetailPage() {
         <div className="lg:col-span-2">
           <div className="mb-12">
             <div className="flex flex-wrap gap-2 mb-4">
-              <Badge className="bg-primary/20 text-primary border-primary/30 px-3 py-1 font-bold text-[10px] uppercase">
+              <Badge className="bg-primary/20 text-primary border-primary/30 px-3 py-1 font-bold text-[10px] uppercase rounded-none">
                 {course.ncLevel || 'Technical Program'}
               </Badge>
               {course.targetAudience?.map((tag: string, i: number) => (
-                <Badge key={i} variant="outline" className="text-[10px] uppercase tracking-widest opacity-60">
+                <Badge key={i} variant="outline" className="text-[10px] uppercase tracking-widest opacity-60 rounded-none">
                   {tag}
                 </Badge>
               ))}
@@ -116,7 +134,7 @@ export default function CourseDetailPage() {
               <h3 className="text-xl font-bold uppercase tracking-tight mb-8">Detailed Day-by-Day Syllabus</h3>
               <Accordion type="single" collapsible className="w-full space-y-2">
                 {course.modules?.map((module: any, i: number) => (
-                  <AccordionItem key={i} value={`module-${i}`} className="border-white/5 bg-card/50 px-6">
+                  <AccordionItem key={i} value={`module-${i}`} className="border-white/5 bg-card/50 px-6 rounded-none">
                     <AccordionTrigger className="hover:no-underline py-6">
                       <div className="flex gap-4 items-center text-left">
                         <span className="h-8 w-8 rounded-none border border-primary/20 flex items-center justify-center text-[10px] font-mono text-primary">
@@ -125,7 +143,7 @@ export default function CourseDetailPage() {
                         <span className="font-bold uppercase text-xs tracking-wider">{module.topic}</span>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-6 pl-12">
+                    <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-6 pl-12 font-medium">
                       {module.details}
                     </AccordionContent>
                   </AccordionItem>
@@ -137,7 +155,7 @@ export default function CourseDetailPage() {
               <h3 className="text-xl font-bold uppercase tracking-tight">Assigned Faculty Experts</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredInstructors?.length ? filteredInstructors.map((instructor: any) => (
-                  <div key={instructor.id} className="flex items-center gap-6 p-6 bg-card border border-white/5">
+                  <div key={instructor.id} className="flex items-center gap-6 p-6 bg-card border border-white/5 rounded-none">
                     <Avatar className="h-20 w-20 rounded-none border-2 border-primary/20">
                       <AvatarFallback className="bg-secondary text-primary font-bold text-xl uppercase rounded-none">
                         {instructor.name?.charAt(0)}
@@ -148,13 +166,13 @@ export default function CourseDetailPage() {
                       <p className="text-[10px] uppercase font-bold text-primary">{instructor.position}</p>
                       <div className="flex flex-wrap gap-1">
                         {instructor.certifications?.map((cert: string, j: number) => (
-                          <Badge key={j} className="text-[8px] bg-primary/10 text-primary border-none">{cert}</Badge>
+                          <Badge key={j} className="text-[8px] bg-primary/10 text-primary border-none rounded-none">{cert}</Badge>
                         ))}
                       </div>
                     </div>
                   </div>
                 )) : (
-                  <div className="col-span-full flex items-center gap-4 p-8 bg-secondary/10 border border-dashed border-white/10">
+                  <div className="col-span-full flex items-center gap-4 p-8 bg-secondary/10 border border-dashed border-white/10 rounded-none">
                     <Users className="h-10 w-10 text-primary opacity-50" />
                     <div>
                       <p className="font-bold uppercase text-sm">Staff Faculty</p>
@@ -171,7 +189,7 @@ export default function CourseDetailPage() {
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Prerequisites</h4>
                   <ul className="space-y-4">
                     {course.prerequisites?.map((item: string, i: number) => (
-                      <li key={i} className="flex gap-3 text-sm font-medium items-center p-3 bg-secondary/20 rounded">
+                      <li key={i} className="flex gap-3 text-sm font-medium items-center p-3 bg-secondary/20 rounded-none">
                         <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                         {item}
                       </li>
@@ -182,7 +200,7 @@ export default function CourseDetailPage() {
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-accent">Required Equipment</h4>
                   <ul className="space-y-4">
                     {course.requiredTools?.map((item: string, i: number) => (
-                      <li key={i} className="flex gap-3 text-sm font-medium items-center p-3 bg-accent/5 rounded">
+                      <li key={i} className="flex gap-3 text-sm font-medium items-center p-3 bg-accent/5 rounded-none">
                         <Wrench className="h-4 w-4 text-accent shrink-0" />
                         {item}
                       </li>
@@ -196,15 +214,15 @@ export default function CourseDetailPage() {
                   <CreditCard className="h-4 w-4" /> Comprehensive Fee Breakdown
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-6 bg-secondary/10 border border-white/5">
+                  <div className="p-6 bg-secondary/10 border border-white/5 rounded-none">
                     <span className="text-[9px] uppercase font-bold text-muted-foreground block mb-2">Tuition Fee</span>
                     <span className="text-xl font-bold">₱ {course.fees?.tuition?.toLocaleString()}</span>
                   </div>
-                  <div className="p-6 bg-secondary/10 border border-white/5">
+                  <div className="p-6 bg-secondary/10 border border-white/5 rounded-none">
                     <span className="text-[9px] uppercase font-bold text-muted-foreground block mb-2">Materials & Labs</span>
                     <span className="text-xl font-bold">₱ {course.fees?.materials?.toLocaleString()}</span>
                   </div>
-                  <div className="p-6 bg-primary/10 border border-primary/20">
+                  <div className="p-6 bg-primary/10 border border-primary/20 rounded-none">
                     <span className="text-[9px] uppercase font-bold text-primary block mb-2">Total Investment</span>
                     <span className="text-xl font-bold">₱ {course.fees?.total?.toLocaleString()}</span>
                   </div>
@@ -216,11 +234,11 @@ export default function CourseDetailPage() {
               <h3 className="text-xl font-bold uppercase tracking-tight">Course Logistics & Support</h3>
               <Accordion type="single" collapsible className="w-full">
                 {course.faqs?.map((faq: any, i: number) => (
-                  <AccordionItem key={i} value={`faq-${i}`} className="border-white/5">
+                  <AccordionItem key={i} value={`faq-${i}`} className="border-white/5 rounded-none">
                     <AccordionTrigger className="text-left font-bold uppercase text-xs py-6 hover:text-primary">
                       {faq.question}
                     </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground leading-relaxed pb-6">
+                    <AccordionContent className="text-muted-foreground leading-relaxed pb-6 font-medium">
                       {faq.answer}
                     </AccordionContent>
                   </AccordionItem>
@@ -248,7 +266,7 @@ export default function CourseDetailPage() {
                     <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest block">Program Status</span>
                     <span className="text-4xl font-black">{course.status}</span>
                   </div>
-                  <Badge className="bg-primary text-black font-black text-[10px] uppercase px-3">Enrolling</Badge>
+                  <Badge className="bg-primary text-black font-black text-[10px] uppercase px-3 rounded-none">Enrolling</Badge>
                 </div>
 
                 <div className="space-y-4">
