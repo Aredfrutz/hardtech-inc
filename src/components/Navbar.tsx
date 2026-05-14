@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Cpu, Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { Cpu, Menu, X, LogIn, LogOut, User, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth, useUser } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
@@ -92,9 +92,16 @@ export function Navbar() {
                 </Button>
               </div>
             ) : (
-              <Button onClick={handleSignIn} size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-6">
-                <LogIn className="h-4 w-4 mr-2" /> Sign In
-              </Button>
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" onClick={handleSignIn} className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+                  Log In
+                </Button>
+                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-6">
+                  <Link href="/enroll">
+                    <Zap className="h-4 w-4 mr-2 fill-current" /> Enroll Now
+                  </Link>
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -144,9 +151,16 @@ export function Navbar() {
                 </Button>
               </div>
             ) : (
-              <Button onClick={handleSignIn} className="w-full h-14 bg-primary text-primary-foreground font-bold text-lg rounded-xl shadow-lg shadow-primary/20">
-                <LogIn className="h-5 w-5 mr-2" /> Sign In with Google
-              </Button>
+              <div className="flex flex-col gap-3">
+                <Button onClick={handleSignIn} variant="outline" className="w-full h-14 font-bold text-lg rounded-xl">
+                  <LogIn className="h-5 w-5 mr-2" /> Log In with Google
+                </Button>
+                <Button asChild className="w-full h-14 bg-primary text-primary-foreground font-bold text-lg rounded-xl shadow-lg shadow-primary/20">
+                  <Link href="/enroll" onClick={() => setIsOpen(false)}>
+                    Enroll Now
+                  </Link>
+                </Button>
+              </div>
             )}
           </div>
         </div>
