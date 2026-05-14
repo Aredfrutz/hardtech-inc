@@ -20,7 +20,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
-const navLinks = [
+interface NavLink {
+  name: string;
+  href: string;
+  hideForAdmin?: boolean;
+  adminOnly?: boolean;
+}
+
+const navLinks: NavLink[] = [
+  { name: 'ADMIN PORTAL', href: '/admin', adminOnly: true },
   { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
   { name: 'FORUM', href: '/forum', hideForAdmin: true },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
