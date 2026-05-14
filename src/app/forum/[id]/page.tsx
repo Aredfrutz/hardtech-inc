@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -7,9 +8,14 @@ import { collection, addDoc, doc, query, orderBy, serverTimestamp } from 'fireba
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, Loader2, User as UserIcon, MessageSquare, Sparkles, X, Reply } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Send, Loader2, Sparkles, X, Reply } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -89,7 +95,7 @@ export default function ThreadPage() {
 
   const handleSummarize = async () => {
     if (replies.length === 0) {
-      toast({ title: "No content to summarize", description: "Wait for some replies before summarizing.", variant: "destructive" });
+      toast({ title: "No content to summarize", variant: "destructive" });
       return;
     }
 
@@ -99,198 +105,151 @@ export default function ThreadPage() {
       const replyTexts = replies.map((r: any) => r.content);
       const result = await summarizeForumThread({ replies: replyTexts });
       setSummary(result.summary);
-      toast({ title: "Summary Generated", description: "AI has condensed the conversation." });
     } catch (error) {
-      toast({ title: "Summarization failed", description: "There was an error contacting the AI faculty.", variant: "destructive" });
+      toast({ title: "Summarization failed", variant: "destructive" });
     } finally {
       setIsSummarizing(false);
     }
   };
 
-  if (threadLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse font-medium">Retrieving transmission...</p>
-      </div>
-    );
-  }
+  if (threadLoading) return null;
 
   if (!thread) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-3xl font-bold mb-4 font-headline">Discussion Not Found</h2>
-        <p className="text-muted-foreground mb-8">The thread you are looking for may have been archived or removed.</p>
-        <Button asChild variant="outline">
-          <Link href="/forum"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Forum</Link>
+        <h2 className="text-xl font-bold uppercase mb-4">Discussion Not Found</h2>
+        <Button asChild variant="outline" className="rounded-none">
+          <Link href="/forum">Back to Forum</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-background">
-      {/* Header / Parent Thread Info */}
-      <div className="border-b bg-card/30 backdrop-blur-md sticky top-16 z-20 shadow-sm">
-        <div className="container mx-auto px-4 py-6 max-w-4xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-            <Link href="/forum" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors">
-              <ArrowLeft className="h-3 w-3" /> BACK TO COMMUNITY
+    <div className="bg-[#f4f4f4] min-h-screen pb-40">
+      <div className="container mx-auto px-4 py-12 max-w-6xl">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold uppercase tracking-tight text-foreground/80 mb-2">Hardtech Forums</h1>
+          <div className="flex justify-between items-center bg-white p-2 border border-border shadow-sm">
+            <Link href="/forum" className="text-xs font-bold uppercase hover:underline px-2 flex items-center gap-2">
+              <ArrowLeft className="h-3 w-3" /> Back
             </Link>
             
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={handleSummarize} 
-              disabled={isSummarizing || replies.length === 0}
-              className="border-primary/20 text-primary hover:bg-primary/5 h-8"
-            >
-              {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
-              Summarize Discussion
-            </Button>
-          </div>
-          
-          <div className="flex gap-4 items-start">
-            <Avatar className="h-12 w-12 border-2 border-primary/20 shrink-0">
-              <AvatarFallback className="bg-secondary text-primary font-bold text-lg">
-                {thread.authorName?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold font-headline leading-tight">{thread.title}</h1>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1 font-medium text-foreground/80">
-                  <UserIcon className="h-3 w-3 text-primary" /> {thread.authorName}
-                </span>
-                <span>•</span>
-                <span>
-                  {thread.createdAt?.toDate ? format(thread.createdAt.toDate(), 'MMMM d, yyyy h:mm a') : 'Recently Published'}
-                </span>
-              </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={handleSummarize} 
+                disabled={isSummarizing || replies.length === 0}
+                className="text-[10px] font-bold uppercase h-7 px-2"
+              >
+                {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                Summarize
+              </Button>
+              <div className="w-[1px] h-4 bg-border mx-1" />
+              <span className="text-[10px] font-bold uppercase text-muted-foreground">Sort</span>
+              <Select defaultValue="standard">
+                <SelectTrigger className="h-7 w-[100px] text-[10px] bg-black text-white rounded-none border-none">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">Standard</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Content Area */}
-      <div className="flex-grow container mx-auto px-4 py-8 max-w-4xl pb-40">
-        <div className="space-y-6">
-          
-          {/* AI Summary Section */}
-          {(isSummarizing || summary) && (
-            <Card className="border-primary/30 bg-primary/5 animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden">
-              <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-headline flex items-center gap-2 text-primary">
-                  <Sparkles className="h-4 w-4" /> AI FACULTY SUMMARY
-                </CardTitle>
-                {summary && (
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setSummary(null)}>
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-5 pt-0">
-                {isSummarizing ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-[90%] bg-primary/10" />
-                    <Skeleton className="h-4 w-[75%] bg-primary/10" />
-                    <Skeleton className="h-4 w-[85%] bg-primary/10" />
-                  </div>
-                ) : (
-                  <div className="text-sm text-foreground/90 leading-relaxed prose prose-invert max-w-none">
-                    <p className="whitespace-pre-wrap">{summary}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+        {summary && (
+          <div className="mb-8 p-6 bg-primary/10 border-l-4 border-primary shadow-sm relative animate-in fade-in slide-in-from-top-4">
+             <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => setSummary(null)}>
+                <X className="h-3 w-3" />
+              </Button>
+              <h3 className="text-xs font-bold uppercase text-primary mb-2 flex items-center gap-2">
+                <Sparkles className="h-3 w-3" /> Faculty Summary
+              </h3>
+              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{summary}</p>
+          </div>
+        )}
 
-          {/* Replies List */}
+        <div className="bg-white border border-border shadow-sm mb-12">
+          {/* Header Bar */}
+          <div className="bg-black text-white px-4 py-2 flex justify-between items-center">
+            <span className="text-[10px] font-bold uppercase">Author</span>
+            <span className="text-[10px] font-bold uppercase flex-grow ml-44">Topic: {thread.title}</span>
+          </div>
+
+          {/* Messages */}
           {repliesLoading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground opacity-50" />
-            </div>
+            <div className="p-20 text-center text-muted-foreground animate-pulse">Synchronizing thread...</div>
           ) : replies.length > 0 ? (
             replies.map((reply: any, index: number) => (
-              <div key={reply.id} className="group animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className={`flex gap-4 p-5 rounded-2xl border transition-all shadow-sm ${index === 0 ? 'bg-primary/5 border-primary/20' : 'bg-card/40 border-white/5 hover:border-white/10'}`}>
-                  <Avatar className="h-10 w-10 shrink-0">
-                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                      {reply.authorName?.charAt(0).toUpperCase()}
+              <div key={reply.id} className="flex border-b last:border-0 min-h-[250px]">
+                {/* Author Sidebar */}
+                <div className="w-48 bg-secondary/10 border-r p-4 space-y-2 shrink-0">
+                  <span className="text-sm font-bold block">{reply.authorName}</span>
+                  <span className="text-[10px] uppercase text-muted-foreground block font-bold">Member</span>
+                  <Avatar className="h-16 w-16 rounded-none border border-border">
+                    <AvatarFallback className="bg-white rounded-none text-primary font-bold">
+                      {reply.authorName?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-grow space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-foreground">{reply.authorName}</span>
-                        {index === 0 && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">TOPIC STARTER</span>}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-tighter">
-                          {reply.createdAt?.toDate ? format(reply.createdAt.toDate(), 'h:mm a · MMM d') : 'Pending Sync'}
-                        </span>
-                        {user && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 px-2 text-[10px] text-muted-foreground hover:text-primary"
-                            onClick={() => handleReplyToUser(reply.authorName)}
-                          >
-                            <Reply className="h-3 w-3 mr-1" /> Reply
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{reply.content}</p>
+                  <div className="pt-4 space-y-1">
+                    <span className="text-[9px] uppercase text-muted-foreground block">Posts: --</span>
+                  </div>
+                </div>
+                
+                {/* Content Area */}
+                <div className="flex-grow p-6 flex flex-col">
+                  <div className="mb-4 pb-2 border-b flex justify-between items-center">
+                    <span className="text-[10px] text-muted-foreground uppercase font-mono">
+                      {reply.createdAt?.toDate ? format(reply.createdAt.toDate(), 'MMM d, yyyy · h:mm a') : 'Recently'}
+                    </span>
+                    {user && (
+                       <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-6 text-[9px] uppercase font-bold text-muted-foreground hover:text-primary"
+                       onClick={() => handleReplyToUser(reply.authorName)}
+                     >
+                       <Reply className="h-3 w-3 mr-1" /> Quote
+                     </Button>
+                    )}
+                  </div>
+                  <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap flex-grow">
+                    {reply.content}
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-secondary/5 border-border/30">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-              <p className="text-muted-foreground">No replies yet. Start the conversation!</p>
-            </div>
+            <div className="p-20 text-center text-muted-foreground">No content in this discussion.</div>
           )}
-          <div ref={repliesEndRef} className="h-1" />
         </div>
       </div>
 
-      {/* Reply Bar - Fixed to Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t p-4 z-30">
-        <div className="container mx-auto max-w-4xl">
-          {user ? (
+      {/* Reply Bar */}
+      {user && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-30 shadow-2xl">
+          <div className="container mx-auto max-w-6xl">
             <form onSubmit={handleReply} className="flex gap-4 items-end">
               <div className="flex-grow">
                 <Textarea 
                   ref={inputRef}
-                  placeholder="Share your technical insight..." 
+                  placeholder="Type your reply here..." 
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
-                  className="bg-secondary/20 border-white/10 min-h-[60px] max-h-[150px] resize-none focus-visible:ring-primary/50"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleReply();
-                    }
-                  }}
+                  className="bg-[#fcfcfc] border-border rounded-none min-h-[60px] max-h-[150px] resize-none text-sm"
                 />
               </div>
-              <Button type="submit" disabled={isSubmitting || !replyContent.trim()} className="h-[60px] px-6 bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                <span className="ml-2 hidden sm:inline">Send Reply</span>
+              <Button type="submit" disabled={isSubmitting || !replyContent.trim()} className="h-[60px] rounded-none px-8 bg-black text-white uppercase font-bold text-xs tracking-wider">
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                <span className="ml-2">Submit Reply</span>
               </Button>
             </form>
-          ) : (
-            <div className="p-4 rounded-xl bg-secondary/50 border border-dashed border-border text-center">
-              <p className="text-sm text-muted-foreground">
-                Read-only mode. <span className="text-primary font-bold">Sign in</span> to join the conversation.
-              </p>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
-

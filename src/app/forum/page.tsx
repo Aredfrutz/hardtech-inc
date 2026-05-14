@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,9 +7,22 @@ import { collection, addDoc, query, orderBy, serverTimestamp } from 'firebase/fi
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { MessageSquare, Send, Loader2, User as UserIcon, Lock, Plus, ChevronRight } from 'lucide-react';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MessageSquare, Send, Loader2, Plus, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -22,11 +36,11 @@ export default function ForumPage() {
   const { toast } = useToast();
   
   const [newTitle, setNewTitle] = useState('');
+  const [newCategory, setNewCategory] = useState('General');
   const [newContent, setNewContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-  // Threads are now publicly readable
   const threadsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'forum_threads'), orderBy('createdAt', 'desc'));
@@ -41,6 +55,7 @@ export default function ForumPage() {
     setIsSubmitting(true);
     const threadData = {
       title: newTitle,
+      category: newCategory,
       authorId: user.uid,
       authorName: user.displayName || 'Anonymous',
       createdAt: serverTimestamp(),
@@ -72,123 +87,137 @@ export default function ForumPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-16 max-w-5xl">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-headline tracking-tight">
-            Community <span className="text-primary">Forum</span>
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-xl">
-            Technical discussions, troubleshooting, and collaboration for HardTech students.
-          </p>
-        </div>
-        
-        {user ? (
-          <Button 
-            onClick={() => setShowForm(!showForm)} 
-            className={cn(
-              "shadow-lg transition-all",
-              showForm ? "bg-secondary text-secondary-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"
+    <div className="bg-[#f4f4f4] min-h-screen pb-20">
+      <div className="container mx-auto px-4 py-12 max-w-6xl">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold uppercase tracking-tight text-foreground/80 mb-2">Hardtech Forums</h1>
+          <div className="flex justify-between items-center bg-white p-2 border border-border shadow-sm">
+            {user ? (
+              <Button 
+                onClick={() => setShowForm(!showForm)} 
+                variant="ghost"
+                className="text-xs font-bold uppercase hover:bg-primary/10"
+              >
+                {showForm ? 'Cancel' : (
+                  <>
+                    <Plus className="mr-2 h-3 w-3" /> New Topic
+                  </>
+                )}
+              </Button>
+            ) : (
+              <div className="text-xs font-medium text-muted-foreground px-2 flex items-center gap-2">
+                <Lock className="h-3 w-3" /> Sign in to post
+              </div>
             )}
-          >
-            {showForm ? 'Cancel' : (
-              <>
-                <Plus className="mr-2 h-4 w-4" /> Start New Discussion
-              </>
-            )}
-          </Button>
-        ) : (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/20 px-4 py-2 rounded-full border border-white/5">
-            <Lock className="h-4 w-4" /> Sign in to start a topic
+            
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground">Sort</span>
+              <Select defaultValue="newest">
+                <SelectTrigger className="h-7 w-[100px] text-[10px] bg-black text-white rounded-none border-none">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="popular">Popular</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
 
-      {showForm && user && (
-        <Card className="mb-12 border-primary/20 bg-primary/5 animate-in slide-in-from-top-4 duration-300">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl font-headline">
-              <MessageSquare className="h-5 w-5 text-primary" /> Create a New Topic
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {showForm && user && (
+          <div className="mb-8 p-6 bg-white border border-border shadow-md animate-in slide-in-from-top-4 duration-300">
+            <h2 className="text-sm font-bold uppercase mb-4 flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" /> Create Discussion
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Input 
-                  placeholder="A descriptive title for your discussion..." 
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="bg-background border-white/10 h-12 text-lg font-medium"
-                  required
-                />
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-3">
+                  <Input 
+                    placeholder="Title" 
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="h-10 text-sm rounded-none border-border"
+                    required
+                  />
+                </div>
+                <div>
+                  <Select value={newCategory} onValueChange={setNewCategory}>
+                    <SelectTrigger className="h-10 text-sm rounded-none border-border">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Issues">Issues</SelectItem>
+                      <SelectItem value="Inquiries">Inquiries</SelectItem>
+                      <SelectItem value="Suggestions">Suggestions</SelectItem>
+                      <SelectItem value="General">General</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Textarea 
-                  placeholder="Provide context, ask a question, or share your knowledge..." 
-                  value={newContent}
-                  onChange={(e) => setNewContent(e.target.value)}
-                  className="min-h-[150px] bg-background border-white/10"
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <Button type="submit" disabled={isSubmitting} className="px-8 bg-primary text-primary-foreground">
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-                  Publish Topic
+              <Textarea 
+                placeholder="Content..." 
+                value={newContent}
+                onChange={(e) => setNewContent(e.target.value)}
+                className="min-h-[120px] text-sm rounded-none border-border"
+                required
+              />
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isSubmitting} className="rounded-none bg-black text-white hover:bg-black/90 px-8">
+                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                  Post Topic
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Threads List */}
-      <div className="space-y-4">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="text-muted-foreground animate-pulse">Establishing real-time link...</p>
-          </div>
-        ) : threads && threads.length > 0 ? (
-          threads.map((thread: any) => (
-            <Link key={thread.id} href={`/forum/${thread.id}`} className="group block">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 cursor-pointer transition-all border border-white/5 rounded-2xl bg-card/40 hover:bg-card hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5">
-                <div className="flex gap-4 items-center flex-grow">
-                  <Avatar className="h-10 w-10 shrink-0 hidden md:flex">
-                    <AvatarFallback className="bg-secondary text-primary font-bold">
-                      {thread.authorName?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold font-headline group-hover:text-primary transition-colors">
-                      {thread.title}
-                    </h3>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1 font-medium text-foreground/70">
-                        <UserIcon className="h-3 w-3 text-primary" /> {thread.authorName}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        {thread.createdAt?.toDate ? format(thread.createdAt.toDate(), 'MMM d, yyyy') : 'Recently Published'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4 mt-4 sm:mt-0 ml-auto sm:ml-0 text-muted-foreground group-hover:text-primary transition-colors">
-                  <span className="text-xs font-semibold uppercase tracking-wider hidden sm:inline">Join Discussion</span>
-                  <ChevronRight className="h-5 w-5" />
-                </div>
-              </div>
-            </Link>
-          ))
-        ) : (
-          <div className="text-center py-24 border-2 border-dashed rounded-3xl bg-secondary/5 border-border/50">
-            <MessageSquare className="h-16 w-16 text-muted-foreground mx-auto mb-6 opacity-10" />
-            <h3 className="text-2xl font-bold mb-2">The forum is empty</h3>
-            <p className="text-muted-foreground max-w-sm mx-auto">Be the first to start a discussion and build the HardTech knowledge base.</p>
           </div>
         )}
+
+        <div className="bg-white border border-border shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader className="bg-black">
+              <TableRow className="hover:bg-transparent border-none">
+                <TableHead className="text-white font-bold uppercase text-[11px] h-10">Topic</TableHead>
+                <TableHead className="text-white font-bold uppercase text-[11px] h-10 text-center w-32">Category</TableHead>
+                <TableHead className="text-white font-bold uppercase text-[11px] h-10 text-center w-24">Replies</TableHead>
+                <TableHead className="text-white font-bold uppercase text-[11px] h-10 text-right w-40">Last Reply</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground animate-pulse">
+                    Loading threads...
+                  </TableCell>
+                </TableRow>
+              ) : threads && threads.length > 0 ? (
+                threads.map((thread: any) => (
+                  <TableRow key={thread.id} className="group cursor-pointer hover:bg-secondary/20 transition-colors border-b last:border-0">
+                    <TableCell className="p-0">
+                      <Link href={`/forum/${thread.id}`} className="block px-4 py-4 text-sm font-medium hover:underline text-blue-600">
+                        {thread.title}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-center text-xs text-muted-foreground font-medium">
+                      {thread.category || 'General'}
+                    </TableCell>
+                    <TableCell className="text-center text-xs text-muted-foreground font-medium">
+                      --
+                    </TableCell>
+                    <TableCell className="text-right text-[10px] text-muted-foreground font-mono">
+                      {thread.createdAt?.toDate ? format(thread.createdAt.toDate(), 'MMM d, yyyy') : 'Pending'}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
+                    No discussions found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

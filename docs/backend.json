@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Course": {
@@ -43,6 +44,7 @@
       "type": "object",
       "properties": {
         "title": { "type": "string" },
+        "category": { "type": "string" },
         "authorId": { "type": "string" },
         "authorName": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -88,4 +90,3 @@
     }
   }
 }
-// Security Rules deployed successfully.
