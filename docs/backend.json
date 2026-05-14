@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Course": {
@@ -89,3 +88,4 @@
     }
   }
 }
+// Security Rules deployed successfully.
