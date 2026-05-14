@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { LogIn, LogOut } from 'lucide-react';
+import { LogIn, LogOut, ShieldAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/firebase';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -22,9 +22,10 @@ import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
-  { name: 'FORUM', href: '/forum' },
+  { name: 'FORUM', href: '/forum', hideForAdmin: true },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
   { name: 'OFFICIAL LISTS', href: '/officials' },
+  { name: 'STAFF PORTAL', href: '/admin', adminOnly: true },
 ];
 
 export function Navbar() {
@@ -52,6 +53,12 @@ export function Navbar() {
     }
   };
 
+  const visibleLinks = navLinks.filter(link => {
+    if (link.adminOnly && user?.role !== 'admin') return false;
+    if (link.hideForAdmin && user?.role === 'admin') return false;
+    return true;
+  });
+
   return (
     <nav className="w-full bg-[#0a0a0a]/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50">
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
@@ -70,7 +77,7 @@ export function Navbar() {
         {/* Desktop Menu */}
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-6">
-            {navLinks.map((link) => {
+            {visibleLinks.map((link) => {
               const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
               return (
                 <Link
@@ -81,7 +88,11 @@ export function Navbar() {
                     isActive ? "text-primary after:content-[''] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:bg-primary" : "text-muted-foreground"
                   )}
                 >
-                  {link.name}
+                  {link.name === 'STAFF PORTAL' ? (
+                    <span className="flex items-center gap-1">
+                      <ShieldAlert className="h-3 w-3" /> {link.name}
+                    </span>
+                  ) : link.name}
                 </Link>
               );
             })}
