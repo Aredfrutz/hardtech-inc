@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "High-tech server room with glowing green lights",
+      "imageUrl": "https://picsum.photos/seed/hardtech-hero/1200/600",
+      "imageHint": "tech server"
+    },
+    {
+      "id": "course-ai",
+      "description": "Abstract AI neural network representation",
+      "imageUrl": "https://picsum.photos/seed/ai-course/800/600",
+      "imageHint": "artificial intelligence"
+    },
+    {
+      "id": "course-robotics",
+      "description": "Modern robotic arm in a laboratory",
+      "imageUrl": "https://picsum.photos/seed/robotics/800/600",
+      "imageHint": "robotics laboratory"
+    },
+    {
+      "id": "course-coding",
+      "description": "Close up of code on a monitor screen",
+      "imageUrl": "https://picsum.photos/seed/coding/800/600",
+      "imageHint": "software code"
+    },
+    {
+      "id": "event-1",
+      "description": "A tech conference stage with neon lights",
+      "imageUrl": "https://picsum.photos/seed/event1/800/600",
+      "imageHint": "tech conference"
+    },
+    {
+      "id": "news-1",
+      "description": "Modern office space with developers working",
+      "imageUrl": "https://picsum.photos/seed/news1/800/600",
+      "imageHint": "modern office"
+    }
+  ]
 }
