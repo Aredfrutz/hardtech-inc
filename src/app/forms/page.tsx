@@ -5,7 +5,7 @@ import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebas
 import { collection, query, orderBy, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Loader2, Info, Search, Send, FileCheck, ShieldCheck, Plus, Trash2, Edit2, Save, Database, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { FileText, Download, Loader2, Info, Search, Send, FileCheck, ShieldCheck, Plus, Trash2, Edit2, Save, Database, Clock, CheckCircle, XCircle, ClipboardCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -55,10 +55,6 @@ export default function FormsPage() {
   const [newDescription, setNewDescription] = useState('');
   const [newFileUrl, setNewFileUrl] = useState('');
 
-  // Admin Edit State
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [editingForm, setEditingForm] = useState<any>(null);
-
   const formsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'public_forms'), orderBy('title', 'asc'));
@@ -86,11 +82,26 @@ export default function FormsPage() {
     try {
       const batch = writeBatch(firestore);
 
-      // Seed 3 Forms
+      // Seed 3 Standard Academy Forms
       const formsToSeed = [
-        { title: 'Trainee Profile Form (TPF)', category: 'Registration', description: 'Standard profile form for new trainees.', fileUrl: '#' },
-        { title: 'Assessment Application Form', category: 'Certification', description: 'Apply for competency assessment and certification.', fileUrl: '#' },
-        { title: 'Transcript Request Form', category: 'Administrative', description: 'Request for official academic records.', fileUrl: '#' },
+        { 
+          title: 'Trainee Profile Form (TPF)', 
+          category: 'Registration', 
+          description: 'Official enrollment record for technical training programs.', 
+          fileUrl: '/forms/certificate-request' 
+        },
+        { 
+          title: 'Self-Assessment Guide (SAG)', 
+          category: 'Certification', 
+          description: 'Technical checklist for competency verification and skills mapping.', 
+          fileUrl: '/forms/certificate-request' 
+        },
+        { 
+          title: 'Transcript of Records Request', 
+          category: 'Administrative', 
+          description: 'Request for official academic performance and course completion logs.', 
+          fileUrl: '/forms/certificate-request' 
+        },
       ];
 
       formsToSeed.forEach(f => {
@@ -98,8 +109,9 @@ export default function FormsPage() {
         batch.set(ref, f);
       });
 
-      // Seed 10 Requests
-      const courses = ['AI Engineering', 'Robotics', 'Micro-Soldering', 'Web Development'];
+      // Seed 10 Requests with diversified types
+      const courses = ['AI Engineering', 'Robotics Systems', 'Micro-Soldering', 'Cyber Security'];
+      const types = ['Completion', 'Competency', 'Excellence', 'Merit'];
       const statuses = ['pending', 'approved', 'rejected'];
       const names = ['Juan Tech', 'Maria Clara', 'Jose Rizal', 'Andres Bonifacio', 'Emilio Aguinaldo', 'Melchora Aquino', 'Gabriela Silang', 'Antonio Luna', 'Apolinario Mabini', 'Marcelo del Pilar'];
 
@@ -109,6 +121,7 @@ export default function FormsPage() {
           userId: `mock-user-${i}`,
           fullName: names[i],
           courseName: courses[i % courses.length],
+          certificateType: types[i % types.length],
           completionDate: '2023-10-12',
           status: statuses[i % statuses.length],
           requestedAt: serverTimestamp()
@@ -133,7 +146,7 @@ export default function FormsPage() {
       title: newTitle,
       category: newCategory,
       description: newDescription,
-      fileUrl: newFileUrl || '#'
+      fileUrl: newFileUrl || '/forms/certificate-request'
     };
 
     addDoc(collection(firestore, 'public_forms'), formData)
@@ -238,11 +251,11 @@ export default function FormsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">File URL</Label>
+                    <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Digital Path</Label>
                     <Input 
                       value={newFileUrl} 
                       onChange={(e) => setNewFileUrl(e.target.value)} 
-                      placeholder="https://..." 
+                      placeholder="/forms/certificate-request" 
                       className="bg-background/50 h-12 border-primary/20 rounded-none" 
                     />
                   </div>
@@ -275,6 +288,7 @@ export default function FormsPage() {
                     <TableRow className="hover:bg-transparent border-white/5">
                       <TableHead className="text-[10px] font-bold uppercase tracking-widest">Student</TableHead>
                       <TableHead className="text-[10px] font-bold uppercase tracking-widest">Course</TableHead>
+                      <TableHead className="text-[10px] font-bold uppercase tracking-widest">Type</TableHead>
                       <TableHead className="text-[10px] font-bold uppercase tracking-widest">Date</TableHead>
                       <TableHead className="text-[10px] font-bold uppercase tracking-widest">Status</TableHead>
                       <TableHead className="text-right text-[10px] font-bold uppercase tracking-widest">Actions</TableHead>
@@ -282,12 +296,13 @@ export default function FormsPage() {
                   </TableHeader>
                   <TableBody>
                     {requestsLoading ? (
-                      <TableRow><TableCell colSpan={5} className="text-center py-10 opacity-50">Syncing ledger...</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center py-10 opacity-50">Syncing ledger...</TableCell></TableRow>
                     ) : requests && requests.length > 0 ? (
                       requests.map((req: any) => (
                         <TableRow key={req.id} className="border-white/5">
                           <TableCell className="font-bold text-sm">{req.fullName}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{req.courseName}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{req.certificateType || 'Standard'}</TableCell>
                           <TableCell className="text-[10px] font-mono opacity-60">
                             {req.requestedAt?.toDate ? format(req.requestedAt.toDate(), 'MMM d, h:mm a') : 'Now'}
                           </TableCell>
@@ -312,7 +327,7 @@ export default function FormsPage() {
                         </TableRow>
                       ))
                     ) : (
-                      <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground">No requests found.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">No requests found.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -323,11 +338,13 @@ export default function FormsPage() {
       )}
 
       <div className="flex flex-col md:flex-row gap-8 items-center justify-between mb-12">
-        <Button asChild size="lg" className="bg-primary text-primary-foreground font-bold rounded-none uppercase tracking-widest h-14 px-8 shadow-lg shadow-primary/20">
-          <Link href="/forms/certificate-request">
-            <Send className="mr-2 h-5 w-5" /> Request Certification
-          </Link>
-        </Button>
+        {!isAdmin && (
+          <Button asChild size="lg" className="bg-primary text-primary-foreground font-bold rounded-none uppercase tracking-widest h-14 px-8 shadow-lg shadow-primary/20">
+            <Link href="/forms/certificate-request">
+              <Send className="mr-2 h-5 w-5" /> Request Certification
+            </Link>
+          </Button>
+        )}
         
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -366,8 +383,10 @@ export default function FormsPage() {
                 <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{form.description}</p>
               </CardContent>
               <CardFooter className="px-6 pb-6 pt-0">
-                <Button variant="secondary" className="w-full h-11 font-bold rounded-none uppercase text-[10px] tracking-widest">
-                  <Download className="mr-2 h-4 w-4" /> Download
+                <Button asChild variant="secondary" className="w-full h-11 font-bold rounded-none uppercase text-[10px] tracking-widest">
+                  <Link href={form.fileUrl || '#'}>
+                    <ClipboardCheck className="mr-2 h-4 w-4" /> Fill Up
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>
