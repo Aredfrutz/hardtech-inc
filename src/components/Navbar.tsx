@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
+  { name: 'FORUM', href: '/forum' },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
   { name: 'OFFICIAL LISTS', href: '/officials' },
 ];
@@ -66,11 +67,11 @@ export function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop Menu - Always visible, no toggle as requested */}
+        {/* Desktop Menu */}
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-6">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
               return (
                 <Link
                   key={link.name}

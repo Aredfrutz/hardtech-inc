@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Send, Loader2, Sparkles, X, Reply } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Sparkles, X, Reply, Lock, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -26,7 +26,7 @@ import Link from 'next/link';
 
 export default function ThreadPage() {
   const { id } = useParams();
-  const { user } = useAuthUser();
+  const { user } = useUser();
   const { firestore } = useFirestore();
   const { toast } = useToast();
   
@@ -56,7 +56,7 @@ export default function ThreadPage() {
   };
 
   useEffect(() => {
-    if (replies.length > 0) {
+    if (replies && replies.length > 0) {
       scrollToBottom();
     }
   }, [replies]);
@@ -95,7 +95,7 @@ export default function ThreadPage() {
   };
 
   const handleSummarize = async () => {
-    if (replies.length === 0) {
+    if (!replies || replies.length === 0) {
       toast({ title: "No content to summarize", variant: "destructive" });
       return;
     }
@@ -113,12 +113,11 @@ export default function ThreadPage() {
     }
   };
 
-  function useAuthUser() {
-    const { user } = useUser();
-    return { user };
-  }
-
-  if (threadLoading) return null;
+  if (threadLoading) return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
 
   if (!thread) {
     return (
@@ -146,7 +145,7 @@ export default function ThreadPage() {
                 size="sm" 
                 variant="outline" 
                 onClick={handleSummarize} 
-                disabled={isSummarizing || replies.length === 0}
+                disabled={isSummarizing || !replies || replies.length === 0}
                 className="text-[10px] font-bold uppercase h-8 px-4 border-primary/30 text-primary hover:bg-primary/10"
               >
                 {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
@@ -188,8 +187,8 @@ export default function ThreadPage() {
           {/* Messages */}
           {repliesLoading ? (
             <div className="p-32 text-center text-muted-foreground animate-pulse font-bold uppercase tracking-widest">Synchronizing Thread Data...</div>
-          ) : replies.length > 0 ? (
-            replies.map((reply: any, index: number) => (
+          ) : replies && replies.length > 0 ? (
+            replies.map((reply: any) => (
               <div key={reply.id} className="flex border-b border-primary/10 last:border-0 min-h-[300px]">
                 {/* Author Sidebar */}
                 <div className="w-56 bg-secondary/20 border-r border-primary/10 p-6 space-y-4 shrink-0">
@@ -233,10 +232,10 @@ export default function ThreadPage() {
         </div>
       </div>
 
-      {/* Reply Bar */}
-      {user && (
-        <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-primary/30 p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-          <div className="container mx-auto max-w-6xl">
+      {/* Reply Bar / Guest Prompt */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-primary/30 p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <div className="container mx-auto max-w-6xl">
+          {user ? (
             <form onSubmit={handleReply} className="flex gap-6 items-end">
               <div className="flex-grow">
                 <Label className="text-[10px] uppercase text-primary mb-2 block font-bold tracking-widest">Transmit Reply</Label>
@@ -253,9 +252,26 @@ export default function ThreadPage() {
                 <span className="ml-3">Execute Upload</span>
               </Button>
             </form>
-          </div>
+          ) : (
+            <div className="flex items-center justify-between gap-8 py-2">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <Lock className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-white">Join the Discussion</h4>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Authenticate with your Academy credentials to contribute technical insights.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                 <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                   <Info className="h-3 w-3" /> Browsing Mode Active
+                 </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

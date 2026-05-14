@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MessageSquare, Send, Loader2, Plus, Lock } from 'lucide-react';
+import { MessageSquare, Send, Loader2, Plus, Lock, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -89,13 +89,15 @@ export default function ForumPage() {
     <div className="bg-background min-h-screen pb-20">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold uppercase tracking-widest text-primary mb-6">Public Service Forum</h1>
+          <h1 className="text-3xl font-bold uppercase tracking-widest text-primary mb-2">Public Service Forum</h1>
+          <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] mb-8">Technical Repository & Discussion Archive</p>
+          
           <div className="flex justify-between items-center bg-card p-4 border border-primary/20 shadow-lg shadow-primary/5">
             {user ? (
               <Button 
                 onClick={() => setShowForm(!showForm)} 
                 variant="outline"
-                className="text-xs font-bold uppercase border-primary/30 hover:bg-primary/10 text-primary"
+                className="text-xs font-bold uppercase border-primary/30 hover:bg-primary/10 text-primary h-10 px-6"
               >
                 {showForm ? 'Cancel Operation' : (
                   <>
@@ -104,15 +106,20 @@ export default function ForumPage() {
                 )}
               </Button>
             ) : (
-              <div className="text-xs font-bold text-muted-foreground px-2 flex items-center gap-2 uppercase tracking-widest">
-                <Lock className="h-3 w-3 text-primary" /> Authenticate to contribute
+              <div className="flex items-center gap-4">
+                <div className="text-[10px] font-bold text-muted-foreground px-2 flex items-center gap-2 uppercase tracking-widest border-r border-white/10 pr-6">
+                  <Lock className="h-3 w-3 text-primary" /> Login Required to Contribute
+                </div>
+                <div className="text-[9px] font-medium text-muted-foreground/60 flex items-center gap-2 uppercase italic">
+                  <Info className="h-3 w-3" /> Browsing as Guest: Public viewing active
+                </div>
               </div>
             )}
             
             <div className="flex items-center gap-3">
               <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Sort Protocol</span>
               <Select defaultValue="newest">
-                <SelectTrigger className="h-8 w-[120px] text-[10px] bg-primary text-primary-foreground rounded-none border-none font-bold uppercase">
+                <SelectTrigger className="h-8 w-[140px] text-[10px] bg-primary text-primary-foreground rounded-none border-none font-bold uppercase">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-primary/20">
