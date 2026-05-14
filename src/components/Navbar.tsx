@@ -31,6 +31,7 @@ const navLinks: NavLink[] = [
   { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
   { name: 'OFFICIAL LISTS', href: '/officials' },
+  { name: 'ADMIN PORTAL', href: '/admin', adminOnly: true },
 ];
 
 export function Navbar() {
