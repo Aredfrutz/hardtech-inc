@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -8,11 +7,14 @@ import { collection, addDoc, doc, query, orderBy, serverTimestamp } from 'fireba
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Send, Loader2, User as UserIcon, MessageSquare } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft, Send, Loader2, User as UserIcon, MessageSquare, Sparkles, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { summarizeForumThread } from '@/ai/flows/forum-summarizer';
 import Link from 'next/link';
 
 export default function ThreadPage() {
@@ -20,8 +22,12 @@ export default function ThreadPage() {
   const { user } = useUser();
   const { firestore } = useFirestore();
   const { toast } = useToast();
+  
   const [replyContent, setReplyContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  
   const repliesEndRef = useRef<HTMLDivElement>(null);
 
   const threadRef = useMemoFirebase(() => {
@@ -74,6 +80,26 @@ export default function ThreadPage() {
       .finally(() => setIsSubmitting(false));
   };
 
+  const handleSummarize = async () => {
+    if (replies.length === 0) {
+      toast({ title: "No content to summarize", description: "Wait for some replies before summarizing.", variant: "destructive" });
+      return;
+    }
+
+    setIsSummarizing(true);
+    setSummary(null);
+    try {
+      const replyTexts = replies.map((r: any) => r.content);
+      const result = await summarizeForumThread({ replies: replyTexts });
+      setSummary(result.summary);
+      toast({ title: "Summary Generated", description: "AI has condensed the conversation." });
+    } catch (error) {
+      toast({ title: "Summarization failed", description: "There was an error contacting the AI faculty.", variant: "destructive" });
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
   if (threadLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -100,9 +126,23 @@ export default function ThreadPage() {
       {/* Header / Parent Thread Info */}
       <div className="border-b bg-card/30 backdrop-blur-md sticky top-16 z-20 shadow-sm">
         <div className="container mx-auto px-4 py-6 max-w-4xl">
-          <Link href="/forum" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary mb-4 transition-colors">
-            <ArrowLeft className="h-3 w-3" /> BACK TO COMMUNITY
-          </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <Link href="/forum" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="h-3 w-3" /> BACK TO COMMUNITY
+            </Link>
+            
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleSummarize} 
+              disabled={isSummarizing || replies.length === 0}
+              className="border-primary/20 text-primary hover:bg-primary/5 h-8"
+            >
+              {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
+              Summarize Discussion
+            </Button>
+          </div>
+          
           <div className="flex gap-4 items-start">
             <Avatar className="h-12 w-12 border-2 border-primary/20 shrink-0">
               <AvatarFallback className="bg-secondary text-primary font-bold text-lg">
@@ -125,9 +165,40 @@ export default function ThreadPage() {
         </div>
       </div>
 
-      {/* Replies List */}
+      {/* Content Area */}
       <div className="flex-grow container mx-auto px-4 py-8 max-w-4xl pb-40">
         <div className="space-y-6">
+          
+          {/* AI Summary Section */}
+          {(isSummarizing || summary) && (
+            <Card className="border-primary/30 bg-primary/5 animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden">
+              <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-sm font-headline flex items-center gap-2 text-primary">
+                  <Sparkles className="h-4 w-4" /> AI FACULTY SUMMARY
+                </CardTitle>
+                {summary && (
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setSummary(null)}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="p-5 pt-0">
+                {isSummarizing ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[90%] bg-primary/10" />
+                    <Skeleton className="h-4 w-[75%] bg-primary/10" />
+                    <Skeleton className="h-4 w-[85%] bg-primary/10" />
+                  </div>
+                ) : (
+                  <div className="text-sm text-foreground/90 leading-relaxed prose prose-invert max-w-none">
+                    <p className="whitespace-pre-wrap">{summary}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Replies List */}
           {repliesLoading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground opacity-50" />
