@@ -140,7 +140,7 @@ export function Navbar() {
                           id="username" 
                           value={username} 
                           onChange={(e) => setUsername(e.target.value)} 
-                          placeholder="e.g. adminHT" 
+                          placeholder="adminHT" 
                           required 
                         />
                       </div>
@@ -205,7 +205,7 @@ export function Navbar() {
               </Button>
             ) : (
               <div className="flex flex-col gap-3">
-                <Button onClick={() => setIsLoginOpen(true)} variant="outline" className="w-full h-14 font-bold text-lg rounded-xl">
+                <Button onClick={() => { setIsOpen(false); setIsLoginOpen(true); }} variant="outline" className="w-full h-14 font-bold text-lg rounded-xl">
                   <LogIn className="h-5 w-5 mr-2" /> Log In
                 </Button>
                 <Button asChild className="w-full h-14 bg-primary text-primary-foreground font-bold text-lg rounded-xl shadow-lg shadow-primary/20">
