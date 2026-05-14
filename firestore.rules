@@ -40,14 +40,16 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Forum Threads: Authenticated users can read and create; only authors can update or delete.
+    // Forum Threads: Open to view from everyone. Authenticated users can create; only authors can update or delete.
     match /forum_threads/{threadId} {
-      allow read, create: if isAuthenticated();
+      allow read: if true;
+      allow create: if isAuthenticated();
       allow update, delete: if isOwner(resource.data.authorId);
 
-      // Nested Replies Subcollection: Same authentication and authorship logic.
+      // Nested Replies Subcollection: Same visibility and authorship logic.
       match /replies/{replyId} {
-        allow read, create: if isAuthenticated();
+        allow read: if true;
+        allow create: if isAuthenticated();
         allow update, delete: if isOwner(resource.data.authorId);
       }
     }

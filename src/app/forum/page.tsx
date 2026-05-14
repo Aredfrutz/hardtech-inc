@@ -26,11 +26,11 @@ export default function ForumPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-  // CRITICAL: Only initiate query if user is authenticated to satisfy Security Rules
+  // Threads are now publicly readable
   const threadsQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
+    if (!firestore) return null;
     return query(collection(firestore, 'forum_threads'), orderBy('createdAt', 'desc'));
-  }, [firestore, user]);
+  }, [firestore]);
 
   const { data: threads, loading } = useCollection(threadsQuery);
 
@@ -99,7 +99,7 @@ export default function ForumPage() {
           </Button>
         ) : (
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/20 px-4 py-2 rounded-full border border-white/5">
-            <Lock className="h-4 w-4" /> Sign in to contribute
+            <Lock className="h-4 w-4" /> Sign in to start a topic
           </div>
         )}
       </div>
@@ -144,13 +144,7 @@ export default function ForumPage() {
 
       {/* Threads List */}
       <div className="space-y-4">
-        {!user ? (
-          <div className="text-center py-24 border-2 border-dashed rounded-3xl bg-secondary/5 border-border/50">
-            <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-6 opacity-10" />
-            <h3 className="text-2xl font-bold mb-2">Access Denied</h3>
-            <p className="text-muted-foreground max-w-sm mx-auto">Please sign in to view the community discussions and participate in the forum.</p>
-          </div>
-        ) : loading ? (
+        {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
             <p className="text-muted-foreground animate-pulse">Establishing real-time link...</p>
