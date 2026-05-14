@@ -1,7 +1,6 @@
+'use client';
 
-"use client"
-
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +10,12 @@ import { cn } from '@/lib/utils';
 
 export default function AnnouncementsPage() {
   const { firestore } = useFirestore();
-  const announcementsQuery = firestore ? query(collection(firestore, 'announcements'), orderBy('date', 'desc')) : null;
+  
+  const announcementsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'announcements'), orderBy('date', 'desc'));
+  }, [firestore]);
+
   const { data: announcements, loading } = useCollection(announcementsQuery);
 
   const getPriorityIcon = (priority: string) => {

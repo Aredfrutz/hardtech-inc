@@ -1,8 +1,7 @@
-
-"use client"
+'use client';
 
 import { useState } from 'react';
-import { useAuth, useUser, useCollection, useFirestore } from '@/firebase';
+import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
-export default function forumPage() {
+export default function ForumPage() {
   const { user } = useUser();
   const { firestore } = useFirestore();
   const { toast } = useToast();
@@ -24,7 +23,11 @@ export default function forumPage() {
   const [newPostContent, setNewPostContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const postsQuery = firestore ? query(collection(firestore, 'forum-posts'), orderBy('createdAt', 'desc')) : null;
+  const postsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'forum-posts'), orderBy('createdAt', 'desc'));
+  }, [firestore]);
+
   const { data: posts, loading } = useCollection(postsQuery);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +73,6 @@ export default function forumPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Post Creation Area */}
         <div className="lg:col-span-4">
           {user ? (
             <Card className="bg-card border-primary/20 sticky top-24">
@@ -118,7 +120,6 @@ export default function forumPage() {
           )}
         </div>
 
-        {/* Discussion List */}
         <div className="lg:col-span-8 space-y-6">
           <h2 className="text-2xl font-bold font-headline mb-4">Recent Discussions</h2>
           {loading ? (

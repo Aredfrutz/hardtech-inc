@@ -1,15 +1,17 @@
-
 'use client';
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 interface FirebaseContextType {
   app: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
+  user: User | null;
+  loading: boolean;
 }
 
 const FirebaseContext = createContext<FirebaseContextType | null>(null);
@@ -25,8 +27,20 @@ export function FirebaseProvider({
   firestore: Firestore; 
   auth: Auth;
 }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [auth]);
+
   return (
-    <FirebaseContext.Provider value={{ app, firestore, auth }}>
+    <FirebaseContext.Provider value={{ app, firestore, auth, user, loading }}>
+      <FirebaseErrorListener />
       {children}
     </FirebaseContext.Provider>
   );
@@ -43,9 +57,11 @@ export function useFirebaseApp() {
 }
 
 export function useFirestore() {
-  return { firestore: useFirebase().firestore };
+  const { firestore } = useFirebase();
+  return { firestore };
 }
 
 export function useAuth() {
-  return { auth: useFirebase().auth };
+  const { auth } = useFirebase();
+  return { auth };
 }
