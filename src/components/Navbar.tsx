@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from 'next/link';
@@ -65,7 +66,7 @@ export function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop Menu - Always visible, no toggle */}
+        {/* Desktop Menu - Always visible, no toggle as requested */}
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-6">
             {navLinks.map((link) => {
@@ -88,7 +89,7 @@ export function Navbar() {
           <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-8">
             {user ? (
               <div className="flex items-center gap-3">
-                <div className="flex flex-col items-end mr-2">
+                <div className="flex flex-col items-end mr-2 text-right">
                   <span className="text-[9px] font-bold text-primary uppercase tracking-wider">{user.role}</span>
                   <span className="text-[10px] text-white font-medium">{user.displayName}</span>
                 </div>
