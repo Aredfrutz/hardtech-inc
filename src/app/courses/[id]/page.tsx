@@ -46,7 +46,6 @@ export default function CourseDetailPage() {
   const filteredInstructors = instructors?.filter(i => course?.instructorIds?.includes(i.id));
 
   const getImageUrl = (imageId: string) => {
-    if (imageId?.startsWith('http')) return imageId;
     const found = PlaceHolderImages.find(img => img.id === imageId);
     return found ? found.imageUrl : PlaceHolderImages[0].imageUrl;
   };

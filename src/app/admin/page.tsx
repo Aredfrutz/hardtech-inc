@@ -13,13 +13,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Image as ImageIcon, Check, Globe, FileEdit, RefreshCw } from 'lucide-react';
+import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Check, Globe, FileEdit, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function AdminDashboard() {
   const { firestore } = useFirestore();
@@ -51,7 +50,7 @@ export default function AdminDashboard() {
   const { data: existingCourses } = useCollection(coursesQuery);
 
   // Manual / AI Content State
-  const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number; selectedInstructorIds: string[]; selectedImageId: string }>>({
+  const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number; selectedInstructorIds: string[] }>>({
     courseTitle: '',
     description: '',
     summary: '',
@@ -63,8 +62,7 @@ export default function AdminDashboard() {
     tuition: 15000,
     materials: 5000,
     duration: 40,
-    selectedInstructorIds: [],
-    selectedImageId: 'hardware-chip'
+    selectedInstructorIds: []
   });
 
   if (userLoading) return null;
@@ -95,8 +93,7 @@ export default function AdminDashboard() {
       tuition: 15000,
       materials: 5000,
       duration: 40,
-      selectedInstructorIds: [],
-      selectedImageId: 'hardware-chip'
+      selectedInstructorIds: []
     });
     setKeywords('');
     setEditingId(null);
@@ -119,8 +116,7 @@ export default function AdminDashboard() {
       tuition: course.fees?.tuition || 0,
       materials: course.fees?.materials || 0,
       duration: course.durationHours || 40,
-      selectedInstructorIds: course.instructorIds || [],
-      selectedImageId: course.imageId || 'hardware-chip'
+      selectedInstructorIds: course.instructorIds || []
     });
     toast({ title: "Program Loaded", description: "You are now editing an existing curriculum entry." });
   };
@@ -166,7 +162,7 @@ export default function AdminDashboard() {
       },
       durationHours: courseData.duration || 40,
       status: "Active",
-      imageId: courseData.selectedImageId || "hardware-chip",
+      imageId: "hardware-chip",
       updatedAt: serverTimestamp(),
       ...(editingId ? {} : { createdAt: serverTimestamp() })
     };
@@ -397,12 +393,6 @@ export default function AdminDashboard() {
     setCourseData({ ...courseData, selectedInstructorIds: updated });
   };
 
-  const getPreviewImageUrl = (id: string) => {
-    if (id?.startsWith('http')) return id;
-    const found = PlaceHolderImages.find(img => img.id === id);
-    return found ? found.imageUrl : PlaceHolderImages[0].imageUrl;
-  };
-
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-12 flex justify-between items-start">
@@ -533,7 +523,6 @@ export default function AdminDashboard() {
                   <TabsTrigger value="curriculum" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Syllabus</TabsTrigger>
                   <TabsTrigger value="faculty" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Faculty</TabsTrigger>
                   <TabsTrigger value="logistics" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Logistics</TabsTrigger>
-                  <TabsTrigger value="imagery" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Imagery</TabsTrigger>
                 </TabsList>
                 
                 <div className="p-8 overflow-y-auto max-h-[500px]">
@@ -682,45 +671,6 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   </TabsContent>
-
-                  <TabsContent value="imagery" className="mt-0 space-y-8">
-                    <div className="space-y-4">
-                      <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Protocol: Program Imagery Selection</Label>
-                      <p className="text-[10px] text-muted-foreground uppercase">Select a high-fidelity visual or provide a custom high-fidelity URL.</p>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {PlaceHolderImages.map((img) => (
-                          <div 
-                            key={img.id}
-                            onClick={() => setCourseData({...courseData, selectedImageId: img.id})}
-                            className={`relative aspect-video border-2 cursor-pointer transition-all overflow-hidden ${courseData.selectedImageId === img.id ? 'border-primary ring-2 ring-primary/20' : 'border-white/10 grayscale hover:grayscale-0'}`}
-                          >
-                            <Image src={img.imageUrl} alt={img.description} fill className="object-cover" />
-                            {courseData.selectedImageId === img.id && (
-                              <div className="absolute top-2 right-2 bg-primary text-black p-1">
-                                <Check className="h-3 w-3" />
-                              </div>
-                            )}
-                            <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-2 opacity-0 hover:opacity-100 transition-opacity">
-                              <p className="text-[8px] font-bold uppercase truncate">{img.description}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="pt-6 border-t border-white/5 space-y-2">
-                        <Label className="text-[10px] uppercase font-bold opacity-50 flex items-center gap-2">
-                          <Globe className="h-3 w-3" /> Custom Imagery URL (Optional)
-                        </Label>
-                        <Input 
-                          placeholder="https://example.com/image.jpg" 
-                          value={courseData.selectedImageId || ''}
-                          onChange={(e) => setCourseData({...courseData, selectedImageId: e.target.value})}
-                          className="bg-secondary/20 h-10 rounded-none border-white/10 text-xs"
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
                 </div>
               </Tabs>
             </CardContent>
@@ -731,12 +681,6 @@ export default function AdminDashboard() {
                     <p className="text-8px uppercase font-bold text-muted-foreground mb-1">Total Fee</p>
                     <p className="text-lg font-bold">₱ {((courseData.tuition || 0) + (courseData.materials || 0)).toLocaleString()}</p>
                   </div>
-                  {courseData.selectedImageId && courseData.selectedImageId.startsWith('http') && (
-                    <div className="ml-4 flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20">
-                      <ImageIcon className="h-3 w-3 text-primary" />
-                      <span className="text-[8px] font-bold uppercase text-primary">External Asset Active</span>
-                    </div>
-                  )}
                </div>
                <Button 
                 onClick={handlePublish} 
