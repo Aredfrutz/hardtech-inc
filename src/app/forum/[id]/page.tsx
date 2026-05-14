@@ -196,12 +196,6 @@ export default function ThreadPage() {
                       {reply.authorName?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="pt-4 space-y-2 border-t border-primary/10">
-                    <div className="flex justify-between text-[9px] uppercase font-bold text-muted-foreground tracking-tighter">
-                      <span>Sync Status:</span>
-                      <span className="text-primary">ONLINE</span>
-                    </div>
-                  </div>
                 </div>
                 
                 {/* Content Area */}
