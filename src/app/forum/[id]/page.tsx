@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -25,7 +26,7 @@ import Link from 'next/link';
 
 export default function ThreadPage() {
   const { id } = useParams();
-  const { user } = useUser();
+  const { user } = useAuthUser();
   const { firestore } = useFirestore();
   const { toast } = useToast();
   
@@ -112,6 +113,11 @@ export default function ThreadPage() {
     }
   };
 
+  function useAuthUser() {
+    const { user } = useUser();
+    return { user };
+  }
+
   if (threadLoading) return null;
 
   if (!thread) {
@@ -119,7 +125,7 @@ export default function ThreadPage() {
       <div className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-xl font-bold uppercase mb-4 text-primary">Discussion Not Found</h2>
         <Button asChild variant="outline" className="rounded-none border-primary/30">
-          <Link href="/forum">Back to Forum Registry</Link>
+          <Link href="/forum">Back to Registry</Link>
         </Button>
       </div>
     );
@@ -129,7 +135,7 @@ export default function ThreadPage() {
     <div className="bg-background min-h-screen pb-40">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold uppercase tracking-widest text-primary mb-4">Hardtech Discussion Registry</h1>
+          <h1 className="text-2xl font-bold uppercase tracking-widest text-primary mb-4">Public Service Forum</h1>
           <div className="flex justify-between items-center bg-card p-4 border border-primary/20 shadow-lg">
             <Link href="/forum" className="text-xs font-bold uppercase hover:text-primary flex items-center gap-2 tracking-widest">
               <ArrowLeft className="h-4 w-4" /> Back to Index

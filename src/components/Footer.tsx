@@ -26,9 +26,8 @@ export function Footer() {
             <h4 className="font-bold text-[10px] uppercase tracking-widest mb-4">Quick Links</h4>
             <ul className="space-y-2 text-[10px] font-medium text-muted-foreground uppercase">
               <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
-              <li><Link href="/forum" className="hover:text-primary transition-colors">Public Forum Services</Link></li>
+              <li><Link href="/forum" className="hover:text-primary transition-colors">Public Service Forum</Link></li>
               <li><Link href="/announcements" className="hover:text-primary transition-colors">Announcements</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">About Us</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>

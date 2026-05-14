@@ -89,7 +89,7 @@ export default function ForumPage() {
     <div className="bg-background min-h-screen pb-20">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold uppercase tracking-widest text-primary mb-6">Academy Discussion Forum</h1>
+          <h1 className="text-3xl font-bold uppercase tracking-widest text-primary mb-6">Public Service Forum</h1>
           <div className="flex justify-between items-center bg-card p-4 border border-primary/20 shadow-lg shadow-primary/5">
             {user ? (
               <Button 
