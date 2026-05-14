@@ -29,7 +29,6 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
-  { name: 'FORUM', href: '/forum', hideForAdmin: true },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
   { name: 'OFFICIAL LISTS', href: '/officials' },
 ];
