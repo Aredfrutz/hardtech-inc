@@ -2,20 +2,39 @@
 {
   "entities": {
     "Course": {
-      "title": "Training Course",
-      "description": "A technical training course offered by HardTech Academy.",
+      "title": "Technical Training Course",
+      "description": "A comprehensive training program with syllabus, faculty, and logistics.",
       "type": "object",
       "properties": {
         "title": { "type": "string" },
-        "summary": { "type": "string", "description": "A professional 3-sentence summary of the course." },
+        "summary": { "type": "string" },
         "description": { "type": "string" },
-        "instructor": { "type": "string" },
-        "duration": { "type": "string" },
+        "ncLevel": { "type": "string", "description": "TESDA NC Level if applicable" },
+        "durationHours": { "type": "number" },
+        "instructorIds": { "type": "array", "items": { "type": "string" } },
         "status": { "type": "string", "enum": ["Active", "Draft", "Archived"] },
         "imageId": { "type": "string" },
-        "outline": { "type": "array", "items": { "type": "string" } },
-        "learningOutcomes": { "type": "array", "items": { "type": "string" } },
-        "targetAudience": { "type": "array", "items": { "type": "string" } },
+        "modules": { 
+          "type": "array", 
+          "items": { 
+            "type": "object", 
+            "properties": {
+              "day": { "type": "string" },
+              "topic": { "type": "string" },
+              "details": { "type": "string" }
+            }
+          } 
+        },
+        "prerequisites": { "type": "array", "items": { "type": "string" } },
+        "requiredTools": { "type": "array", "items": { "type": "string" } },
+        "fees": {
+          "type": "object",
+          "properties": {
+            "tuition": { "type": "number" },
+            "materials": { "type": "number" },
+            "total": { "type": "number" }
+          }
+        },
         "faqs": { 
           "type": "array", 
           "items": { 
@@ -27,7 +46,7 @@
           } 
         }
       },
-      "required": ["title", "description", "instructor", "status"]
+      "required": ["title", "description", "modules", "fees", "status"]
     },
     "User": {
       "title": "User Profile",
@@ -40,43 +59,6 @@
       },
       "required": ["email", "role"]
     },
-    "Announcement": {
-      "title": "Official Announcement",
-      "description": "Administrative updates and news for the academy.",
-      "type": "object",
-      "properties": {
-        "title": { "type": "string" },
-        "body": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] }
-      },
-      "required": ["title", "body", "timestamp"]
-    },
-    "ForumThread": {
-      "title": "Forum Discussion Thread",
-      "description": "User-generated discussion threads in the public forum.",
-      "type": "object",
-      "properties": {
-        "title": { "type": "string" },
-        "category": { "type": "string" },
-        "authorId": { "type": "string" },
-        "authorName": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["title", "authorId", "authorName", "createdAt"]
-    },
-    "ForumReply": {
-      "title": "Forum Reply",
-      "description": "User responses within a forum thread.",
-      "type": "object",
-      "properties": {
-        "content": { "type": "string" },
-        "authorId": { "type": "string" },
-        "authorName": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["content", "authorId", "authorName", "createdAt"]
-    },
     "Official": {
       "title": "Academy Official",
       "description": "Leadership and staff members of the center.",
@@ -86,35 +68,11 @@
         "position": { "type": "string" },
         "department": { "type": "string" },
         "email": { "type": "string" },
+        "bio": { "type": "string" },
+        "certifications": { "type": "array", "items": { "type": "string" } },
         "imageId": { "type": "string" }
       },
-      "required": ["name", "position"]
-    },
-    "PublicForm": {
-      "title": "Public Service Form",
-      "description": "Downloadable or digital forms for students and public use.",
-      "type": "object",
-      "properties": {
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "category": { "type": "string" },
-        "fileUrl": { "type": "string" }
-      },
-      "required": ["title", "description"]
-    },
-    "CertificateRequest": {
-      "title": "Training Certificate Request",
-      "description": "Formal digital request for a course completion certificate.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "fullName": { "type": "string" },
-        "courseName": { "type": "string" },
-        "completionDate": { "type": "string", "format": "date" },
-        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
-        "requestedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "fullName", "courseName", "completionDate", "status", "requestedAt"]
+      "required": ["name", "position", "bio", "certifications"]
     }
   },
   "auth": {
@@ -123,35 +81,15 @@
   "firestore": {
     "/courses/{courseId}": {
       "schema": "Course",
-      "description": "Collection of official training courses."
+      "description": "Collection of official training programs."
     },
     "/users/{userId}": {
       "schema": "User",
       "description": "System users and their roles."
     },
-    "/announcements/{announcementId}": {
-      "schema": "Announcement",
-      "description": "Collection of administrative announcements."
-    },
-    "/forum_threads/{threadId}": {
-      "schema": "ForumThread",
-      "description": "Top-level forum discussion threads."
-    },
-    "/forum_threads/{threadId}/replies/{replyId}": {
-      "schema": "ForumReply",
-      "description": "Nested replies for a specific thread."
-    },
     "/officials/{officialId}": {
       "schema": "Official",
-      "description": "Directory of center leadership and staff."
-    },
-    "/public_forms/{formId}": {
-      "schema": "PublicForm",
-      "description": "Repository of public service forms."
-    },
-    "/certificate_requests/{requestId}": {
-      "schema": "CertificateRequest",
-      "description": "Collection of student certificate requests."
+      "description": "Directory of staff with comprehensive bios and certifications."
     }
   }
 }

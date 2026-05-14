@@ -2,15 +2,36 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // --- Prototype Rules: Highly Permissive ---
-    // Since we are using a custom mock auth for the prototype UI, 
-    // we allow public access to facilitate development and testing.
     
+    // Helper to ensure documentation is comprehensive before publishing
+    function isCourseComprehensive(data) {
+      return data.keys().hasAll(['title', 'description', 'modules', 'fees', 'status']) &&
+             data.modules.size() > 0 &&
+             data.fees.tuition >= 0;
+    }
+
+    function isOfficialComprehensive(data) {
+      return data.keys().hasAll(['name', 'position', 'bio', 'certifications']) &&
+             data.certifications.size() > 0 &&
+             data.bio.size() > 50;
+    }
+
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isCourseComprehensive(request.resource.data);
+    }
+
+    match /officials/{officialId} {
+      allow read: if true;
+      allow write: if isOfficialComprehensive(request.resource.data);
+    }
+
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
     match /{document=**} {
       allow read, write: if true;
     }
-    
-    // In a production environment, you would revert to strict rules 
-    // using Firebase Auth and user role documents.
   }
 }

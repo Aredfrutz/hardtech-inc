@@ -4,14 +4,30 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { CheckCircle2, ArrowLeft, Clock, BarChart, BookOpen, Info, Loader2, Target, ListChecks, HelpCircle, FileText } from 'lucide-react';
+import { 
+  CheckCircle2, 
+  ArrowLeft, 
+  Clock, 
+  BarChart, 
+  BookOpen, 
+  Info, 
+  Loader2, 
+  Target, 
+  ListChecks, 
+  HelpCircle, 
+  FileText, 
+  Wrench, 
+  Users, 
+  CreditCard 
+} from 'lucide-react';
 
 export default function CourseDetailPage() {
   const { id } = useParams();
@@ -23,6 +39,15 @@ export default function CourseDetailPage() {
   }, [firestore, id]);
 
   const { data: course, loading } = useDoc(courseRef);
+
+  // Fetch instructors if available
+  const instructorsQuery = useMemoFirebase(() => {
+    if (!firestore || !course?.instructorIds?.length) return null;
+    return collection(firestore, 'officials');
+  }, [firestore, course?.instructorIds]);
+
+  const { data: instructors } = useCollection(instructorsQuery);
+  const filteredInstructors = instructors?.filter(i => course?.instructorIds?.includes(i.id));
 
   if (loading) {
     return (
@@ -56,7 +81,7 @@ export default function CourseDetailPage() {
           <div className="mb-12">
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge className="bg-primary/20 text-primary border-primary/30 px-3 py-1 font-bold text-[10px] uppercase">
-                {course.instructor}
+                {course.ncLevel || 'Technical Program'}
               </Badge>
               {course.targetAudience?.map((tag: string, i: number) => (
                 <Badge key={i} variant="outline" className="text-[10px] uppercase tracking-widest opacity-60">
@@ -66,78 +91,125 @@ export default function CourseDetailPage() {
             </div>
             <h1 className="text-4xl md:text-6xl font-black mb-6 font-headline leading-tight uppercase tracking-tighter">{course.title}</h1>
             <p className="text-2xl text-foreground font-medium leading-relaxed italic border-l-4 border-primary pl-8 py-2">
-              {course.summary || course.description?.split('.').slice(0, 2).join('.') + '.'}
+              {course.summary}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-16">
-            <div className="flex flex-col gap-1 border-t-2 border-primary pt-4">
-              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Duration</span>
-              <span className="font-bold flex items-center gap-2 text-sm"><Clock className="h-3 w-3 text-primary" /> {course.duration}</span>
-            </div>
-            <div className="flex flex-col gap-1 border-t-2 border-accent pt-4">
-              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Enrollment</span>
-              <span className="font-bold flex items-center gap-2 text-sm"><BarChart className="h-3 w-3 text-accent" /> {course.status}</span>
-            </div>
-            <div className="flex flex-col gap-1 border-t-2 border-primary pt-4">
-              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Method</span>
-              <span className="font-bold flex items-center gap-2 text-sm"><BookOpen className="h-3 w-3 text-primary" /> Hybrid/Lab</span>
-            </div>
-            <div className="flex flex-col gap-1 border-t-2 border-accent pt-4">
-              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Verification</span>
-              <span className="font-bold flex items-center gap-2 text-sm"><CheckCircle2 className="h-3 w-3 text-accent" /> Digital Cert</span>
-            </div>
-          </div>
-
           <Tabs defaultValue="curriculum" className="w-full">
-            <TabsList className="w-full justify-start bg-secondary/20 border-b border-white/5 rounded-none h-14 p-0 mb-12">
-              <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-black rounded-none h-full px-8 text-[10px] font-bold uppercase tracking-widest">
-                <ListChecks className="h-3 w-3 mr-2" /> Syllabus
+            <TabsList className="w-full justify-start bg-secondary/20 border-b border-white/5 rounded-none h-14 p-0 mb-12 overflow-x-auto">
+              <TabsTrigger value="curriculum" className="data-[state=active]:bg-primary data-[state=active]:text-black rounded-none h-full px-8 text-[10px] font-bold uppercase tracking-widest shrink-0">
+                <ListChecks className="h-3 w-3 mr-2" /> Lesson Plan
               </TabsTrigger>
-              <TabsTrigger value="details" className="data-[state=active]:bg-primary data-[state=active]:text-black rounded-none h-full px-8 text-[10px] font-bold uppercase tracking-widest">
-                <FileText className="h-3 w-3 mr-2" /> Outcomes
+              <TabsTrigger value="instructors" className="data-[state=active]:bg-primary data-[state=active]:text-black rounded-none h-full px-8 text-[10px] font-bold uppercase tracking-widest shrink-0">
+                <Users className="h-3 w-3 mr-2" /> Faculty
               </TabsTrigger>
-              <TabsTrigger value="faqs" className="data-[state=active]:bg-primary data-[state=active]:text-black rounded-none h-full px-8 text-[10px] font-bold uppercase tracking-widest">
+              <TabsTrigger value="requirements" className="data-[state=active]:bg-primary data-[state=active]:text-black rounded-none h-full px-8 text-[10px] font-bold uppercase tracking-widest shrink-0">
+                <Wrench className="h-3 w-3 mr-2" /> Logistics
+              </TabsTrigger>
+              <TabsTrigger value="faqs" className="data-[state=active]:bg-primary data-[state=active]:text-black rounded-none h-full px-8 text-[10px] font-bold uppercase tracking-widest shrink-0">
                 <HelpCircle className="h-3 w-3 mr-2" /> Support
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="curriculum" className="space-y-6 animate-in fade-in duration-500">
-              <h3 className="text-xl font-bold uppercase tracking-tight mb-8">Technical Module Breakdown</h3>
-              <div className="space-y-4">
-                {course.outline?.map((item: string, i: number) => (
-                  <div key={i} className="flex gap-4 items-center p-6 bg-card border border-white/5 group hover:border-primary/50 transition-colors">
-                    <span className="h-10 w-10 shrink-0 border-2 border-primary/20 flex items-center justify-center text-xs font-mono text-primary group-hover:bg-primary group-hover:text-black transition-colors">{i + 1}</span>
-                    <span className="font-bold uppercase text-sm tracking-wide">{item}</span>
-                  </div>
+            <TabsContent value="curriculum" className="space-y-6">
+              <h3 className="text-xl font-bold uppercase tracking-tight mb-8">Detailed Day-by-Day Syllabus</h3>
+              <Accordion type="single" collapsible className="w-full space-y-2">
+                {course.modules?.map((module: any, i: number) => (
+                  <AccordionItem key={i} value={`module-${i}`} className="border-white/5 bg-card/50 px-6">
+                    <AccordionTrigger className="hover:no-underline py-6">
+                      <div className="flex gap-4 items-center text-left">
+                        <span className="h-8 w-8 rounded-none border border-primary/20 flex items-center justify-center text-[10px] font-mono text-primary">
+                          {module.day}
+                        </span>
+                        <span className="font-bold uppercase text-xs tracking-wider">{module.topic}</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-6 pl-12">
+                      {module.details}
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
+              </Accordion>
+            </TabsContent>
+
+            <TabsContent value="instructors" className="space-y-8">
+              <h3 className="text-xl font-bold uppercase tracking-tight">Assigned Faculty Experts</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredInstructors?.length ? filteredInstructors.map((instructor: any) => (
+                  <div key={instructor.id} className="flex items-center gap-6 p-6 bg-card border border-white/5">
+                    <Avatar className="h-20 w-20 rounded-none border-2 border-primary/20">
+                      <AvatarFallback className="bg-secondary text-primary font-bold text-xl uppercase rounded-none">
+                        {instructor.name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2">
+                      <h4 className="font-bold uppercase text-sm tracking-tight">{instructor.name}</h4>
+                      <p className="text-[10px] uppercase font-bold text-primary">{instructor.position}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {instructor.certifications?.map((cert: string, j: number) => (
+                          <Badge key={j} className="text-[8px] bg-primary/10 text-primary border-none">{cert}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )) : (
+                  <p className="text-muted-foreground italic text-sm">Faculty assignments are currently being finalized.</p>
+                )}
               </div>
             </TabsContent>
 
-            <TabsContent value="details" className="space-y-12 animate-in fade-in duration-500">
-              <div className="space-y-6">
-                <h3 className="text-xl font-bold uppercase tracking-tight">Full Course Description</h3>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{course.description}</p>
+            <TabsContent value="requirements" className="space-y-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="space-y-6">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Prerequisites</h4>
+                  <ul className="space-y-4">
+                    {course.prerequisites?.map((item: string, i: number) => (
+                      <li key={i} className="flex gap-3 text-sm font-medium items-center p-3 bg-secondary/20 rounded">
+                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="space-y-6">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-accent">Required Equipment</h4>
+                  <ul className="space-y-4">
+                    {course.requiredTools?.map((item: string, i: number) => (
+                      <li key={i} className="flex gap-3 text-sm font-medium items-center p-3 bg-accent/5 rounded">
+                        <Wrench className="h-4 w-4 text-accent shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              
-              <div className="space-y-6">
-                <h3 className="text-xl font-bold uppercase tracking-tight">Key Learning Objectives</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {course.learningOutcomes?.map((outcome: string, i: number) => (
-                    <div key={i} className="flex gap-3 p-4 bg-secondary/20 rounded-lg border border-white/5">
-                      <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                      <span className="text-sm font-medium">{outcome}</span>
-                    </div>
-                  ))}
+
+              <div className="pt-8 border-t border-white/5 space-y-6">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" /> Comprehensive Fee Breakdown
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-6 bg-secondary/10 border border-white/5">
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground block mb-2">Tuition Fee</span>
+                    <span className="text-xl font-bold">₱ {course.fees?.tuition?.toLocaleString()}</span>
+                  </div>
+                  <div className="p-6 bg-secondary/10 border border-white/5">
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground block mb-2">Materials & Labs</span>
+                    <span className="text-xl font-bold">₱ {course.fees?.materials?.toLocaleString()}</span>
+                  </div>
+                  <div className="p-6 bg-primary/10 border border-primary/20">
+                    <span className="text-[9px] uppercase font-bold text-primary block mb-2">Total Investment</span>
+                    <span className="text-xl font-bold">₱ {course.fees?.total?.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="faqs" className="space-y-8 animate-in fade-in duration-500">
-              <h3 className="text-xl font-bold uppercase tracking-tight">Course Logistics & FAQs</h3>
+            <TabsContent value="faqs" className="space-y-8">
+              <h3 className="text-xl font-bold uppercase tracking-tight">Course Logistics & Support</h3>
               <Accordion type="single" collapsible className="w-full">
                 {course.faqs?.map((faq: any, i: number) => (
-                  <AccordionItem key={i} value={`item-${i}`} className="border-white/5">
+                  <AccordionItem key={i} value={`faq-${i}`} className="border-white/5">
                     <AccordionTrigger className="text-left font-bold uppercase text-xs py-6 hover:text-primary">
                       {faq.question}
                     </AccordionTrigger>
@@ -166,15 +238,15 @@ export default function CourseDetailPage() {
               <div className="p-8 space-y-8">
                 <div className="flex items-baseline justify-between gap-2">
                   <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest block">Investment</span>
-                    <span className="text-4xl font-black">₱ 14,999</span>
+                    <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest block">Program Status</span>
+                    <span className="text-4xl font-black">{course.status}</span>
                   </div>
                   <Badge className="bg-primary text-black font-black text-[10px] uppercase px-3">Enrolling</Badge>
                 </div>
 
                 <div className="space-y-4">
                   <Button asChild size="lg" className="w-full bg-primary text-black font-black uppercase text-xs h-16 tracking-[0.2em] hover:bg-white hover:text-black rounded-none transition-all shadow-lg shadow-primary/20">
-                    <Link href={`/enroll?course=${id}`}>Execute Application</Link>
+                    <Link href={`/enroll?course=${id}`}>Execute Enrollment</Link>
                   </Button>
                   <p className="text-center text-[9px] uppercase font-black text-muted-foreground tracking-tighter opacity-50 flex items-center justify-center gap-2">
                     <Info className="h-3 w-3" /> Technical Readiness Assessment Required
@@ -182,15 +254,17 @@ export default function CourseDetailPage() {
                 </div>
 
                 <div className="pt-8 border-t border-white/5 space-y-4">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Prerequisites</h4>
-                  <ul className="space-y-2">
-                    <li className="flex gap-2 text-[10px] font-bold uppercase text-muted-foreground">
-                      <Target className="h-3 w-3 text-primary" /> Basic Electronics Logic
-                    </li>
-                    <li className="flex gap-2 text-[10px] font-bold uppercase text-muted-foreground">
-                      <Target className="h-3 w-3 text-primary" /> Core Hardware Familiarity
-                    </li>
-                  </ul>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Core Statistics</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-[10px] font-bold uppercase">
+                      <span className="text-muted-foreground">Contact Hours</span>
+                      <span>{course.durationHours || 40} Hrs</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-bold uppercase">
+                      <span className="text-muted-foreground">Certification Type</span>
+                      <span>Digital Certificate</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
