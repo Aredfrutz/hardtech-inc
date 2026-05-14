@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -13,16 +12,18 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 const MOCK_OFFICIALS = [
-  { name: "Dr. Elena Vance", position: "Executive Director", department: "Administration", email: "e.vance@hardtech.academy" },
-  { name: "Marcus Thorne", position: "Academic Dean", department: "Education", email: "m.thorne@hardtech.academy" },
-  { name: "Sarah Jenkins", position: "Lead AI Instructor", department: "AI & ML", email: "s.jenkins@hardtech.academy" },
-  { name: "Robert Chen", position: "Head of Robotics", department: "Robotics", email: "r.chen@hardtech.academy" },
-  { name: "Anita Desai", position: "Senior Systems Engineer", department: "Infrastructure", email: "a.desai@hardtech.academy" },
-  { name: "Victor Stone", position: "Board Repair Specialist", department: "Hardware Lab", email: "v.stone@hardtech.academy" },
-  { name: "Maya Lopez", position: "Student Affairs Manager", department: "Student Services", email: "m.lopez@hardtech.academy" },
-  { name: "Kevin Flynn", position: "Grid Systems Architect", department: "Software Eng", email: "k.flynn@hardtech.academy" },
-  { name: "Diana Prince", position: "External Relations", department: "Partnerships", email: "d.prince@hardtech.academy" },
-  { name: "Tony Stark", position: "Technical Advisor", department: "Innovation Lab", email: "t.stark@hardtech.academy" }
+  { name: "John Egbert", position: "Technical Director", department: "Administration", email: "j.egbert@hardtech.academy" },
+  { name: "Rose Lalonde", position: "Strategic Advisor", department: "Research & Development", email: "r.lalonde@hardtech.academy" },
+  { name: "Dave Strider", position: "Creative Lead", department: "Design Ops", email: "d.strider@hardtech.academy" },
+  { name: "Jade Harley", position: "Head of Laboratory", department: "Applied Sciences", email: "j.harley@hardtech.academy" },
+  { name: "Jane Crocker", position: "Operations Manager", department: "Center Logistics", email: "j.crocker@hardtech.academy" },
+  { name: "Roxy Lalonde", position: "Systems Architect", department: "Infrastructure", email: "r.lalonde.sys@hardtech.academy" },
+  { name: "Dirk Strider", position: "Senior Engineer", department: "Hardware Lab", email: "d.strider.eng@hardtech.academy" },
+  { name: "Jake English", position: "Logistics Coordinator", department: "External Relations", email: "j.english@hardtech.academy" },
+  { name: "Karkat Vantas", position: "Communications Lead", department: "Student Affairs", email: "k.vantas@hardtech.academy" },
+  { name: "Vriska Serket", position: "Project Supervisor", department: "Special Projects", email: "v.serket@hardtech.academy" },
+  { name: "Terezi Pyrope", position: "Compliance Officer", department: "Quality Assurance", email: "t.pyrope@hardtech.academy" },
+  { name: "Kanaya Maryam", position: "Resource Manager", department: "Procurement", email: "k.maryam@hardtech.academy" }
 ];
 
 export default function OfficialsPage() {
