@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -22,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Info, AlertTriangle, CheckCircle2, Loader2, ChevronDown, Megaphone, Send, ShieldAlert } from 'lucide-react';
+import { Calendar, Info, AlertTriangle, CheckCircle2, Loader2, ChevronDown, Megaphone, Send, ShieldAlert, Database, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +40,7 @@ export default function AnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   // Form State
   const [isPublishing, setIsPublishing] = useState(false);
@@ -128,6 +128,43 @@ export default function AnnouncementsPage() {
       .finally(() => setIsPublishing(false));
   };
 
+  const handleSeedAnnouncements = async () => {
+    if (!firestore) return;
+    setIsSeeding(true);
+
+    const mockData = [
+      {
+        title: "Critical Infrastructure Patch Required",
+        body: "Students are advised to back up their local workstation data before the global cluster reboot tonight at 23:00. This is mandatory for all Batch 01 systems.",
+        priority: "High",
+        timestamp: serverTimestamp()
+      },
+      {
+        title: "New Lab Access Protocol",
+        body: "Starting next week, all hardware labs will require biometric authentication. Please visit the registrar office near the Main Hall to update your digital profile.",
+        priority: "Medium",
+        timestamp: serverTimestamp()
+      },
+      {
+        title: "Open House: Robotics Showcase",
+        body: "Join us this Friday for a live demonstration of the new robotic arm systems developed by our senior engineering batch. Snacks and networking to follow.",
+        priority: "Low",
+        timestamp: serverTimestamp()
+      }
+    ];
+
+    try {
+      const promises = mockData.map(data => addDoc(collection(firestore, 'announcements'), data));
+      await Promise.all(promises);
+      toast({ title: "Seeding Complete", description: "3 official announcements have been added." });
+      fetchAnnouncements();
+    } catch (error) {
+      toast({ title: "Seeding Failed", variant: "destructive" });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   const getPriorityStyles = (priority: string) => {
     switch (priority) {
       case 'High': return "border-destructive text-destructive bg-destructive/5";
@@ -160,11 +197,23 @@ export default function AnnouncementsPage() {
       {/* Admin Broadcast Console */}
       {isAdmin && (
         <Card className="mb-16 border-primary/20 bg-primary/5 backdrop-blur-sm overflow-hidden shadow-2xl shadow-primary/5">
-          <CardHeader className="p-8 pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl font-headline">
-              <ShieldAlert className="h-6 w-6 text-primary" /> Staff Broadcast Command
-            </CardTitle>
-            <CardDescription>Publish official notices to the student body.</CardDescription>
+          <CardHeader className="p-8 pb-4 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl font-headline">
+                <ShieldAlert className="h-6 w-6 text-primary" /> Staff Broadcast Command
+              </CardTitle>
+              <CardDescription>Publish official notices to the student body.</CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSeedAnnouncements} 
+              disabled={isSeeding}
+              className="border-primary/30 text-primary hover:bg-primary/10"
+            >
+              {isSeeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4 mr-2" />}
+              Seed Announcements
+            </Button>
           </CardHeader>
           <CardContent className="p-8 pt-0">
             <form onSubmit={handleCreateAnnouncement} className="space-y-6">
