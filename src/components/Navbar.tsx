@@ -24,6 +24,8 @@ const navLinks = [
   { name: 'Announcements', href: '/announcements' },
   { name: 'Official List', href: '/courses' },
   { name: 'Public Service Forum', href: '/forum' },
+  { name: 'Forms', href: '/forms' },
+  { name: 'Officials', href: '/officials' },
 ];
 
 export function Navbar() {
@@ -68,8 +70,8 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center gap-8">
-          <div className="flex items-center gap-6">
+        <div className="hidden xl:flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -77,8 +79,8 @@ export function Navbar() {
                   key={link.name}
                   href={link.href}
                   className={cn(
-                    "text-[11px] font-bold transition-all hover:text-primary uppercase tracking-widest px-2 relative py-1",
-                    isActive ? "text-primary after:content-[''] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-primary" : "text-muted-foreground"
+                    "text-[10px] font-bold transition-all hover:text-primary uppercase tracking-widest px-1 relative py-1",
+                    isActive ? "text-primary after:content-[''] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:bg-primary" : "text-muted-foreground"
                   )}
                 >
                   {link.name}
@@ -87,7 +89,7 @@ export function Navbar() {
             })}
           </div>
           
-          <div className="flex items-center gap-4 ml-4">
+          <div className="flex items-center gap-3 ml-2">
             {user ? (
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8 border-2 border-primary/30">
@@ -95,15 +97,15 @@ export function Navbar() {
                     {user.displayName.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <Button variant="ghost" size="sm" onClick={logout} className="text-[10px] font-bold text-muted-foreground uppercase hover:text-destructive">
-                  <LogOut className="h-3.5 w-3.5 mr-2" /> Out
+                <Button variant="ghost" size="sm" onClick={logout} className="text-[10px] font-bold text-muted-foreground uppercase hover:text-destructive p-0">
+                  <LogOut className="h-3.5 w-3.5 mr-1" /> Out
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="ghost" className="text-[11px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest">
+                    <Button variant="ghost" className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest px-2">
                       Log In
                     </Button>
                   </DialogTrigger>
@@ -142,21 +144,21 @@ export function Navbar() {
               </div>
             )}
 
-            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-6 rounded-full text-[11px] uppercase tracking-widest h-10">
+            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-4 rounded-full text-[10px] uppercase tracking-widest h-9">
               <Link href="/enroll">Enroll Now</Link>
             </Button>
           </div>
         </div>
 
         {/* Mobile Toggle */}
-        <button className="lg:hidden p-2 text-white" onClick={() => setIsOpen(!isOpen)}>
+        <button className="xl:hidden p-2 text-white" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-black border-t border-primary/10 p-8 flex flex-col gap-6 animate-in slide-in-from-top-2">
+        <div className="xl:hidden bg-black border-t border-primary/10 p-8 flex flex-col gap-6 animate-in slide-in-from-top-2">
           {navLinks.map((link) => (
             <Link
               key={link.name}

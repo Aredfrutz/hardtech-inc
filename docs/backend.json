@@ -62,6 +62,31 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["content", "authorId", "authorName", "createdAt"]
+    },
+    "Official": {
+      "title": "Academy Official",
+      "description": "Leadership and staff members of the center.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "position": { "type": "string" },
+        "department": { "type": "string" },
+        "email": { "type": "string" },
+        "imageId": { "type": "string" }
+      },
+      "required": ["name", "position"]
+    },
+    "PublicForm": {
+      "title": "Public Service Form",
+      "description": "Downloadable or digital forms for students and public use.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "fileUrl": { "type": "string" }
+      },
+      "required": ["title", "description"]
     }
   },
   "auth": {
@@ -87,6 +112,14 @@
     "/forum_threads/{threadId}/replies/{replyId}": {
       "schema": "ForumReply",
       "description": "Nested replies for a specific thread."
+    },
+    "/officials/{officialId}": {
+      "schema": "Official",
+      "description": "Directory of center leadership and staff."
+    },
+    "/public_forms/{formId}": {
+      "schema": "PublicForm",
+      "description": "Repository of public service forms."
     }
   }
 }
