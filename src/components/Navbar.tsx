@@ -25,7 +25,6 @@ const navLinks = [
   { name: 'FORUM', href: '/forum', hideForAdmin: true },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
   { name: 'OFFICIAL LISTS', href: '/officials' },
-  { name: 'STAFF PORTAL', href: '/admin', adminOnly: true },
 ];
 
 export function Navbar() {
@@ -88,11 +87,7 @@ export function Navbar() {
                     isActive ? "text-primary after:content-[''] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:bg-primary" : "text-muted-foreground"
                   )}
                 >
-                  {link.name === 'STAFF PORTAL' ? (
-                    <span className="flex items-center gap-1">
-                      <ShieldAlert className="h-3 w-3" /> {link.name}
-                    </span>
-                  ) : link.name}
+                  {link.name}
                 </Link>
               );
             })}
