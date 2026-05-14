@@ -15,6 +15,17 @@
       },
       "required": ["title", "description", "instructor", "status"]
     },
+    "User": {
+      "title": "User Profile",
+      "description": "User account details and permissions.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "admin"] }
+      },
+      "required": ["email", "role"]
+    },
     "Announcement": {
       "title": "Official Announcement",
       "description": "Administrative updates and news for the academy.",
@@ -59,6 +70,10 @@
     "/courses/{courseId}": {
       "schema": "Course",
       "description": "Collection of official training courses."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "System users and their roles."
     },
     "/announcements/{announcementId}": {
       "schema": "Announcement",
