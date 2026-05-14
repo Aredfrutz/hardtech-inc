@@ -168,7 +168,9 @@ export default function CourseCatalog() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {filteredCourses.map((course: any) => {
             const image = PlaceHolderImages.find(img => img.id === course.imageId) || PlaceHolderImages[0];
-            const instructorName = course.instructorIds?.[0] ? instructorMap[course.instructorIds[0]] : 'Staff Faculty';
+            const instructorName = course.instructorIds?.[0] && instructorMap[course.instructorIds[0]] 
+              ? instructorMap[course.instructorIds[0]] 
+              : 'STAFF FACULTY';
             
             return (
               <Card key={course.id} className="group relative flex flex-col bg-card/40 border-white/5 overflow-hidden backdrop-blur-xl transition-all duration-500 hover:border-primary/30 rounded-none">

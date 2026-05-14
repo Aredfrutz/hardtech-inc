@@ -3,8 +3,8 @@
 
 import { useState } from 'react';
 import { generateCourseContent, AdminCourseDescriptionOutput } from '@/ai/flows/admin-course-description-generator';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Checkbox } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -32,8 +33,15 @@ export default function AdminDashboard() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [activeMode, setActiveMode] = useState<'ai' | 'manual'>('ai');
 
+  // Fetch Officials for selection
+  const officialsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'officials'), orderBy('name', 'asc'));
+  }, [firestore]);
+  const { data: officials } = useCollection(officialsQuery);
+
   // Manual / AI Content State
-  const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number }>>({
+  const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number; selectedInstructorIds: string[] }>>({
     courseTitle: '',
     description: '',
     summary: '',
@@ -44,7 +52,8 @@ export default function AdminDashboard() {
     faqs: [{ question: '', answer: '' }],
     tuition: 15000,
     materials: 5000,
-    duration: 40
+    duration: 40,
+    selectedInstructorIds: []
   });
 
   if (userLoading) return null;
@@ -95,7 +104,7 @@ export default function AdminDashboard() {
       prerequisites: courseData.prerequisites,
       requiredTools: courseData.requiredTools,
       faqs: courseData.faqs,
-      instructorIds: [],
+      instructorIds: courseData.selectedInstructorIds || [],
       fees: {
         tuition: courseData.tuition || 15000,
         materials: courseData.materials || 5000,
@@ -121,7 +130,8 @@ export default function AdminDashboard() {
           faqs: [{ question: '', answer: '' }],
           tuition: 15000,
           materials: 5000,
-          duration: 40
+          duration: 40,
+          selectedInstructorIds: []
         });
         setKeywords('');
       })
@@ -156,6 +166,7 @@ export default function AdminDashboard() {
         requiredTools: ["Digital Microscope", "ZXW Dongle"],
         fees: { tuition: 25000, materials: 10000, total: 35000 },
         faqs: [{ question: "Are boards provided?", answer: "Yes." }],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -173,6 +184,7 @@ export default function AdminDashboard() {
         requiredTools: ["UFI Box", "Heat Gun"],
         fees: { tuition: 18000, materials: 7000, total: 25000 },
         faqs: [{ question: "Generic Androids?", answer: "All major brands." }],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -190,6 +202,7 @@ export default function AdminDashboard() {
         requiredTools: ["Power Supply", "Oscilloscope"],
         fees: { tuition: 30000, materials: 15000, total: 45000 },
         faqs: [{ question: "Includes M1 chips?", answer: "Yes, focused on newer architectures." }],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -205,6 +218,7 @@ export default function AdminDashboard() {
         requiredTools: ["0.1mm Solder Tip"],
         fees: { tuition: 12000, materials: 4000, total: 16000 },
         faqs: [],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -220,6 +234,7 @@ export default function AdminDashboard() {
         requiredTools: ["Ultrasonic Cleaner"],
         fees: { tuition: 15000, materials: 10000, total: 25000 },
         faqs: [],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -235,6 +250,7 @@ export default function AdminDashboard() {
         requiredTools: ["EasyJTAG Box"],
         fees: { tuition: 20000, materials: 8000, total: 28000 },
         faqs: [],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -250,6 +266,7 @@ export default function AdminDashboard() {
         requiredTools: ["Vacuum Laminator"],
         fees: { tuition: 15000, materials: 12000, total: 27000 },
         faqs: [],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -265,6 +282,7 @@ export default function AdminDashboard() {
         requiredTools: ["DC Power Supply"],
         fees: { tuition: 18000, materials: 6000, total: 24000 },
         faqs: [],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -280,6 +298,7 @@ export default function AdminDashboard() {
         requiredTools: ["Multimeter"],
         fees: { tuition: 8000, materials: 3000, total: 11000 },
         faqs: [],
+        instructorIds: [],
         createdAt: serverTimestamp()
       },
       {
@@ -295,6 +314,7 @@ export default function AdminDashboard() {
         requiredTools: ["Large Heat Pad"],
         fees: { tuition: 14000, materials: 6000, total: 20000 },
         faqs: [],
+        instructorIds: [],
         createdAt: serverTimestamp()
       }
     ];
@@ -314,6 +334,14 @@ export default function AdminDashboard() {
     const newModules = [...(courseData.modules || [])];
     newModules[index] = { ...newModules[index], [field]: value };
     setCourseData({ ...courseData, modules: newModules });
+  };
+
+  const toggleInstructor = (id: string) => {
+    const current = courseData.selectedInstructorIds || [];
+    const updated = current.includes(id) 
+      ? current.filter(i => i !== id) 
+      : [...current, id];
+    setCourseData({ ...courseData, selectedInstructorIds: updated });
   };
 
   return (
@@ -411,6 +439,7 @@ export default function AdminDashboard() {
                 <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-14 p-0">
                   <TabsTrigger value="description" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Profile</TabsTrigger>
                   <TabsTrigger value="curriculum" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Syllabus</TabsTrigger>
+                  <TabsTrigger value="faculty" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Faculty</TabsTrigger>
                   <TabsTrigger value="logistics" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Logistics</TabsTrigger>
                 </TabsList>
                 
@@ -481,6 +510,32 @@ export default function AdminDashboard() {
                         />
                       </div>
                     ))}
+                  </TabsContent>
+
+                  <TabsContent value="faculty" className="mt-0 space-y-6">
+                    <h4 className="text-[10px] uppercase font-bold text-primary tracking-widest">Assign Specialized Instructors</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {officials?.map((official: any) => (
+                        <div 
+                          key={official.id} 
+                          onClick={() => toggleInstructor(official.id)}
+                          className={`p-4 border cursor-pointer flex items-center gap-4 transition-all ${
+                            courseData.selectedInstructorIds?.includes(official.id) 
+                              ? 'bg-primary/10 border-primary' 
+                              : 'bg-secondary/10 border-white/5 hover:border-white/20'
+                          }`}
+                        >
+                          <div className={`h-4 w-4 border flex items-center justify-center ${courseData.selectedInstructorIds?.includes(official.id) ? 'bg-primary border-primary' : 'border-white/20'}`}>
+                            {courseData.selectedInstructorIds?.includes(official.id) && <span className="text-[10px] text-black font-bold">✓</span>}
+                          </div>
+                          <div className="flex-grow">
+                            <p className="text-xs font-bold uppercase">{official.name}</p>
+                            <p className="text-[8px] text-muted-foreground uppercase">{official.position}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {!officials?.length && <p className="text-[10px] text-muted-foreground italic">No faculty registered in Official Lists.</p>}
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="logistics" className="mt-0 space-y-8">
