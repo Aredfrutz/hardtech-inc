@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Checkbox } from 'lucide-react';
+import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -149,6 +149,15 @@ export default function AdminDashboard() {
     if (!firestore) return;
     setIsSeeding(true);
 
+    // Pick a few real instructor IDs if available
+    const availableIds = officials?.map(o => o.id) || [];
+    const getRandomIds = () => {
+      if (availableIds.length === 0) return [];
+      const count = Math.min(availableIds.length, 1 + Math.floor(Math.random() * 2));
+      const shuffled = [...availableIds].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    };
+
     const techPrograms = [
       {
         title: "Advanced iPhone Motherboard Repair",
@@ -166,7 +175,7 @@ export default function AdminDashboard() {
         requiredTools: ["Digital Microscope", "ZXW Dongle"],
         fees: { tuition: 25000, materials: 10000, total: 35000 },
         faqs: [{ question: "Are boards provided?", answer: "Yes." }],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -184,7 +193,7 @@ export default function AdminDashboard() {
         requiredTools: ["UFI Box", "Heat Gun"],
         fees: { tuition: 18000, materials: 7000, total: 25000 },
         faqs: [{ question: "Generic Androids?", answer: "All major brands." }],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -202,7 +211,7 @@ export default function AdminDashboard() {
         requiredTools: ["Power Supply", "Oscilloscope"],
         fees: { tuition: 30000, materials: 15000, total: 45000 },
         faqs: [{ question: "Includes M1 chips?", answer: "Yes, focused on newer architectures." }],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -218,7 +227,7 @@ export default function AdminDashboard() {
         requiredTools: ["0.1mm Solder Tip"],
         fees: { tuition: 12000, materials: 4000, total: 16000 },
         faqs: [],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -234,7 +243,7 @@ export default function AdminDashboard() {
         requiredTools: ["Ultrasonic Cleaner"],
         fees: { tuition: 15000, materials: 10000, total: 25000 },
         faqs: [],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -250,7 +259,7 @@ export default function AdminDashboard() {
         requiredTools: ["EasyJTAG Box"],
         fees: { tuition: 20000, materials: 8000, total: 28000 },
         faqs: [],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -266,7 +275,7 @@ export default function AdminDashboard() {
         requiredTools: ["Vacuum Laminator"],
         fees: { tuition: 15000, materials: 12000, total: 27000 },
         faqs: [],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -282,7 +291,7 @@ export default function AdminDashboard() {
         requiredTools: ["DC Power Supply"],
         fees: { tuition: 18000, materials: 6000, total: 24000 },
         faqs: [],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -298,7 +307,7 @@ export default function AdminDashboard() {
         requiredTools: ["Multimeter"],
         fees: { tuition: 8000, materials: 3000, total: 11000 },
         faqs: [],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       },
       {
@@ -314,7 +323,7 @@ export default function AdminDashboard() {
         requiredTools: ["Large Heat Pad"],
         fees: { tuition: 14000, materials: 6000, total: 20000 },
         faqs: [],
-        instructorIds: [],
+        instructorIds: getRandomIds(),
         createdAt: serverTimestamp()
       }
     ];
@@ -322,7 +331,7 @@ export default function AdminDashboard() {
     try {
       const promises = techPrograms.map(prog => addDoc(collection(firestore, 'courses'), prog));
       await Promise.all(promises);
-      toast({ title: "Registry Populated", description: "10 Technical Programs added." });
+      toast({ title: "Registry Populated", description: "10 Technical Programs added with faculty links." });
     } catch (error) {
       toast({ title: "Seed Failed", variant: "destructive" });
     } finally {
@@ -358,7 +367,7 @@ export default function AdminDashboard() {
           className="border-primary/30 text-primary h-12 rounded-none uppercase font-bold text-xs tracking-widest bg-black hover:bg-primary hover:text-black transition-all"
         >
           {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
-          Seed 10 technical Programs
+          Seed 10 Technical Programs
         </Button>
       </div>
 
@@ -545,7 +554,7 @@ export default function AdminDashboard() {
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-bold opacity-50">NC Level</span>
+                              <span className="text-9px uppercase font-bold opacity-50">NC Level</span>
                               <Input 
                                 value={courseData.ncLevel || ''} 
                                 onChange={(e) => setCourseData({...courseData, ncLevel: e.target.value})}
@@ -553,7 +562,7 @@ export default function AdminDashboard() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase font-bold opacity-50">Hours</span>
+                              <span className="text-9px uppercase font-bold opacity-50">Hours</span>
                               <Input 
                                 type="number"
                                 value={courseData.duration || 40} 
@@ -568,7 +577,7 @@ export default function AdminDashboard() {
                         <Label className="text-[10px] uppercase font-bold text-accent">Investment Registry (PHP)</Label>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <span className="text-[9px] uppercase font-bold opacity-50">Tuition</span>
+                            <span className="text-9px uppercase font-bold opacity-50">Tuition</span>
                             <Input 
                               type="number"
                               value={courseData.tuition || 0} 
@@ -577,7 +586,7 @@ export default function AdminDashboard() {
                             />
                           </div>
                           <div className="space-y-1">
-                            <span className="text-[9px] uppercase font-bold opacity-50">Materials</span>
+                            <span className="text-9px uppercase font-bold opacity-50">Materials</span>
                             <Input 
                               type="number"
                               value={courseData.materials || 0} 
@@ -596,7 +605,7 @@ export default function AdminDashboard() {
             <CardFooter className="border-t p-8 bg-secondary/10 flex justify-between items-center">
                <div className="flex gap-4">
                   <div className="text-center">
-                    <p className="text-[8px] uppercase font-bold text-muted-foreground mb-1">Total Fee</p>
+                    <p className="text-8px uppercase font-bold text-muted-foreground mb-1">Total Fee</p>
                     <p className="text-lg font-bold">₱ {((courseData.tuition || 0) + (courseData.materials || 0)).toLocaleString()}</p>
                   </div>
                </div>

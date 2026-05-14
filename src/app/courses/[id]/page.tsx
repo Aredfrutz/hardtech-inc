@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, collection } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,17 +16,13 @@ import {
   CheckCircle2, 
   ArrowLeft, 
   Clock, 
-  BarChart, 
-  BookOpen, 
-  Info, 
   Loader2, 
-  Target, 
   ListChecks, 
   HelpCircle, 
-  FileText, 
   Wrench, 
   Users, 
-  CreditCard 
+  CreditCard,
+  Info
 } from 'lucide-react';
 
 export default function CourseDetailPage() {
@@ -153,7 +149,13 @@ export default function CourseDetailPage() {
                     </div>
                   </div>
                 )) : (
-                  <p className="text-muted-foreground italic text-sm">Faculty assignments are currently being finalized.</p>
+                  <div className="col-span-full flex items-center gap-4 p-8 bg-secondary/10 border border-dashed border-white/10">
+                    <Users className="h-10 w-10 text-primary opacity-50" />
+                    <div>
+                      <p className="font-bold uppercase text-sm">Staff Faculty</p>
+                      <p className="text-[10px] text-muted-foreground uppercase">General Technical Support Team</p>
+                    </div>
+                  </div>
                 )}
               </div>
             </TabsContent>
