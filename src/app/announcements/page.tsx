@@ -53,13 +53,27 @@ export default function AnnouncementsPage() {
       const announcementsQuery = query(
         announcementsRef,
         orderBy('timestamp', 'desc'),
-        limit(15)
+        limit(20)
       );
       const snapshot = await getDocs(announcementsQuery);
+      
+      const priorityMap: Record<string, number> = { 'High': 3, 'Medium': 2, 'Low': 1 };
+      
       const fetched = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      })).sort((a, b) => {
+        // Sort by Priority first
+        const pA = priorityMap[a.priority as string] || 0;
+        const pB = priorityMap[b.priority as string] || 0;
+        if (pB !== pA) return pB - pA;
+        
+        // Then by Timestamp (newest first)
+        const tA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+        const tB = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+        return tB - tA;
+      });
+
       setAnnouncements(fetched);
     } catch (error) {
       console.error("Error fetching announcements:", error);
@@ -109,20 +123,20 @@ export default function AnnouncementsPage() {
 
     const mockData = [
       {
-        title: "Actual Advance Board-Level Training",
-        body: "Hardtech Information Technology Corporation proudly invites aspiring technicians and professionals to join our Actual Advance Board-Level Training. Gain industry-ready skills through hands-on instruction led by seasoned experts.\n\nWHERE: PANABO & TAGUM\nWHEN: April 18, 2026\nZAMBOANGA CITY\nSchedule to be Announced\n\nTraining Highlights:\n- Cellphone Repair for Android and Apple Devices\n- Circuit Line Tracing and Troubleshooting\n- Microsoldering and Reballing Techniques\n- Proper Use of Multimeter and Board Viewer\n- Isolation Strategy and Voltage Checking\n- One-on-One, Hands-On Instruction\n- Professional Technician Tips and Tricks\n\nCertifications:\n- TESDA NC III Certificate\n- Hardtech Certificate of Completion\nReserve your slot now! Limited seats available.",
+        title: "ACTUAL ADVANCE BOARD-LEVEL TRAINING",
+        body: "Hardtech Information Technology Corporation proudly invites aspiring technicians and professionals to join our Actual Advance Board-Level Training. Gain industry-ready skills through hands-on instruction led by seasoned experts.\n\nWHERE: PANABO & TAGUM\nWHEN: April 18, 2026\nZAMBOANGA CITY\nSchedule to be Announced\n\nTraining Highlights:\n- Cellphone Repair for Android and Apple Devices\n- Circuit Line Tracing and Troubleshooting\n- Microsoldering and Reballing Techniques\n- Professional Technician Tips and Tricks",
         priority: "High",
         timestamp: serverTimestamp()
       },
       {
-        title: "Infrastructure Patch: V4.2 Protocol Deployment",
-        body: "Hardtech Information Technology Corporation is upgrading the main laboratory infrastructure to V4.2 on the scheduled technical maintenance window. This patch introduces optimized voltage monitoring and board trace visualization tools for all student workstations. Please ensure all ongoing micro-soldering tasks are backed up before the sync window.",
+        title: "INFRASTRUCTURE PATCH: V4.2 PROTOCOL",
+        body: "Hardtech Information Technology Corporation is upgrading the main laboratory infrastructure to V4.2. This patch introduces optimized voltage monitoring and board trace visualization tools for all student workstations.",
         priority: "Medium",
         timestamp: serverTimestamp()
       },
       {
-        title: "Academy Robotics Showcase 2024",
-        body: "Join us for the annual Hardtech Robotics Showcase where students from the Advanced Board Level and Cellphone Repair Training Programs display their final projects. Witness advanced diagnostics and circuit isolation strategies in action. The event will be hosted at the Panabo Center Hub on December 15.",
+        title: "ACADEMY ROBOTICS SHOWCASE 2024",
+        body: "Join us for the annual Hardtech Robotics Showcase where students display their final projects. Witness advanced diagnostics and circuit isolation strategies in action.",
         priority: "Low",
         timestamp: serverTimestamp()
       }
@@ -223,7 +237,7 @@ export default function AnnouncementsPage() {
               <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
                 <div className="flex items-center gap-2">
                    <div className="h-1 w-12 bg-[#a3ff00]" />
-                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Current Broadcast</span>
+                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Priority Transmission</span>
                 </div>
                 <h2 className="text-3xl font-black uppercase leading-[1.1] tracking-tighter">{mainAnnouncement.title}</h2>
                 <div className="text-sm leading-relaxed whitespace-pre-wrap space-y-4 font-medium opacity-80">
@@ -231,7 +245,7 @@ export default function AnnouncementsPage() {
                 </div>
               </div>
             ) : (
-              <div className="py-20 text-center text-muted-foreground uppercase text-xs font-bold tracking-widest">No primary broadcast available.</div>
+              <div className="py-20 text-center text-muted-foreground uppercase text-xs font-bold tracking-widest">No priority broadcast available.</div>
             )}
           </div>
         </div>
