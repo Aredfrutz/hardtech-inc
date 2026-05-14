@@ -3,13 +3,22 @@
 
 import { useState } from 'react';
 import { useFirestore, useCollection, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, addDoc } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { collection, query, orderBy, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Mail, Users, Info, ShieldCheck, UserPlus } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { Loader2, Mail, Users, Info, ShieldCheck, UserPlus, Trash2, Edit2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -18,13 +27,17 @@ export default function OfficialsPage() {
   const { firestore } = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  
+  // Registration State
   const [isAdding, setIsAdding] = useState(false);
-
-  // Form state
   const [name, setName] = useState('');
   const [position, setPosition] = useState('');
   const [department, setDepartment] = useState('');
   const [email, setEmail] = useState('');
+
+  // Editing State
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editingOfficial, setEditingOfficial] = useState<any>(null);
 
   const officialsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -64,6 +77,49 @@ export default function OfficialsPage() {
         }));
       })
       .finally(() => setIsAdding(false));
+  };
+
+  const handleDeleteOfficial = async (officialId: string, officialName: string) => {
+    if (!firestore || !isAdmin) return;
+
+    deleteDoc(doc(firestore, 'officials', officialId))
+      .then(() => {
+        toast({ title: "Record Deleted", description: `${officialName} has been removed from the directory.` });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `officials/${officialId}`,
+          operation: 'delete'
+        }));
+      });
+  };
+
+  const handleUpdateOfficial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firestore || !editingOfficial) return;
+
+    setIsUpdating(true);
+    const officialRef = doc(firestore, 'officials', editingOfficial.id);
+    const updateData = {
+      name: editingOfficial.name,
+      position: editingOfficial.position,
+      department: editingOfficial.department,
+      email: editingOfficial.email
+    };
+
+    updateDoc(officialRef, updateData)
+      .then(() => {
+        toast({ title: "Record Updated", description: "The official's details have been saved." });
+        setEditingOfficial(null);
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `officials/${editingOfficial.id}`,
+          operation: 'update',
+          requestResourceData: updateData
+        }));
+      })
+      .finally(() => setIsUpdating(false));
   };
 
   return (
@@ -153,7 +209,72 @@ export default function OfficialsPage() {
       ) : officials && officials.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {officials.map((official: any) => (
-            <Card key={official.id} className="bg-card/40 border-white/5 overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 group">
+            <Card key={official.id} className="bg-card/40 border-white/5 overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/5 group relative">
+              {isAdmin && (
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <Dialog open={!!editingOfficial && editingOfficial.id === official.id} onOpenChange={(open) => !open && setEditingOfficial(null)}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={() => setEditingOfficial(official)} className="h-8 w-8 bg-black/50 hover:bg-primary hover:text-primary-foreground">
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-card border-primary/20 sm:max-w-[425px] rounded-none">
+                      <DialogHeader>
+                        <DialogTitle className="uppercase tracking-widest text-primary">Modify Personnel Data</DialogTitle>
+                        <DialogDescription>Update the official records for this academy member.</DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleUpdateOfficial} className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Name</Label>
+                          <Input 
+                            value={editingOfficial?.name || ''} 
+                            onChange={(e) => setEditingOfficial({...editingOfficial, name: e.target.value})}
+                            className="bg-background/50 border-primary/20 rounded-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Position</Label>
+                          <Input 
+                            value={editingOfficial?.position || ''} 
+                            onChange={(e) => setEditingOfficial({...editingOfficial, position: e.target.value})}
+                            className="bg-background/50 border-primary/20 rounded-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Department</Label>
+                          <Input 
+                            value={editingOfficial?.department || ''} 
+                            onChange={(e) => setEditingOfficial({...editingOfficial, department: e.target.value})}
+                            className="bg-background/50 border-primary/20 rounded-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Email</Label>
+                          <Input 
+                            value={editingOfficial?.email || ''} 
+                            onChange={(e) => setEditingOfficial({...editingOfficial, email: e.target.value})}
+                            className="bg-background/50 border-primary/20 rounded-none"
+                          />
+                        </div>
+                        <Button type="submit" disabled={isUpdating} className="w-full bg-primary text-primary-foreground uppercase font-bold text-xs tracking-widest h-12 rounded-none">
+                          {isUpdating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                          Commit Changes
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleDeleteOfficial(official.id, official.name)} 
+                    className="h-8 w-8 bg-black/50 hover:bg-destructive hover:text-white"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+              
               <CardContent className="p-8 text-center flex flex-col items-center">
                 <Avatar className="h-24 w-24 mb-6 border-2 border-primary/20 ring-4 ring-primary/5 transition-transform group-hover:scale-105 rounded-none">
                   <AvatarFallback className="bg-secondary text-primary font-bold text-2xl uppercase rounded-none">
