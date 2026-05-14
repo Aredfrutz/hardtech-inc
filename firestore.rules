@@ -7,7 +7,8 @@ service cloud.firestore {
     function isCourseComprehensive(data) {
       return data.keys().hasAll(['title', 'description', 'modules', 'fees', 'status']) &&
              data.modules.size() > 0 &&
-             data.fees.tuition >= 0;
+             data.fees.tuition >= 0 &&
+             (data.status == 'Active' || data.status == 'Upcoming' || data.status == 'Draft' || data.status == 'Archived');
     }
 
     function isOfficialComprehensive(data) {
@@ -27,6 +28,28 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    match /announcements/{id} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /forum_threads/{id} {
+      allow read: if true;
+      allow write: if true;
+      match /replies/{rid} {
+        allow read, write: if true;
+      }
+    }
+
+    match /public_forms/{id} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /certificate_requests/{id} {
       allow read, write: if true;
     }
 

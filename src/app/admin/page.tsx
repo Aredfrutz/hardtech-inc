@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard } from 'lucide-react';
+import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [keywords, setKeywords] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<AdminCourseDescriptionOutput | null>(null);
 
   if (userLoading) return null;
@@ -72,7 +73,7 @@ export default function AdminDashboard() {
       requiredTools: generatedContent.requiredTools,
       targetAudience: generatedContent.targetAudience,
       faqs: generatedContent.faqs,
-      instructorIds: [], // To be linked manually later
+      instructorIds: [],
       fees: {
         tuition: 15000,
         materials: 5000,
@@ -80,7 +81,7 @@ export default function AdminDashboard() {
       },
       durationHours: 40,
       status: "Active",
-      imageId: "course-ai",
+      imageId: "course-coding",
       createdAt: serverTimestamp()
     };
 
@@ -100,11 +101,77 @@ export default function AdminDashboard() {
       .finally(() => setIsPublishing(false));
   };
 
+  const handleSeedTechnicalPrograms = async () => {
+    if (!firestore) return;
+    setIsSeeding(true);
+
+    const techPrograms = [
+      {
+        title: "Advanced iPhone Motherboard Repair",
+        summary: "Master board-level troubleshooting and microsoldering for Apple devices, focusing on A-series CPU reballing and logic board restoration.",
+        description: "A comprehensive deep dive into iPhone circuit analysis, short circuit detection, and advanced soldering techniques using high-precision microscopes.",
+        ncLevel: "NC III (Hardware)",
+        durationHours: 60,
+        status: "Active",
+        imageId: "course-ai",
+        modules: [
+          { day: "Day 1-2", topic: "Schematic Reading & DC Power Analysis", details: "Using ZXW and Phoneboard to trace power rails and identifying common boot-loop symptoms." },
+          { day: "Day 3-5", topic: "Microsoldering & IC Replacement", details: "Removing and re-installing baseband, power ICs, and Wi-Fi chips without damaging adjacent components." },
+          { day: "Day 6-7", topic: "A-Series CPU Reballing", details: "Step-by-step procedure for stencil alignment and re-soldering the application processor." }
+        ],
+        prerequisites: ["Basic Electronics Knowledge", "Soldering Experience"],
+        requiredTools: ["Microsoldering Station", "Multimeter", "Digital Microscope", "ZXW Dongle"],
+        fees: { tuition: 25000, materials: 10000, total: 35000 },
+        faqs: [{ question: "Do I need to bring my own boards?", answer: "No, practice boards are provided, but students can bring their own scrap boards for extra training." }],
+        createdAt: serverTimestamp()
+      },
+      {
+        title: "Android Hardware & IC Specialist",
+        summary: "Professional training for Android device repair, covering Qualcomm and MediaTek architectures, EMMC/UFS programming, and charging port restoration.",
+        description: "Learn to diagnose complex Android hardware failures, from power management issues to dead-boot scenarios using advanced JTAG and ISP protocols.",
+        ncLevel: "NC II (CSS)",
+        durationHours: 48,
+        status: "Active",
+        imageId: "course-robotics",
+        modules: [
+          { day: "Day 1-3", topic: "Android Board Architecture", details: "Identifying main components on Samsung, Oppo, and Xiaomi motherboards." },
+          { day: "Day 4-6", topic: "ISP & EMMC Programming", details: "Using UFI Box and Easy JTAG for data recovery and firmware patching." }
+        ],
+        prerequisites: ["Basic Android Software Knowledge"],
+        requiredTools: ["Heat Gun", "Solder Iron", "UFI Box (Optional)"],
+        fees: { tuition: 18000, materials: 7000, total: 25000 },
+        faqs: [{ question: "Is this for all Android brands?", answer: "Yes, we cover the universal hardware principles that apply to 90% of the market." }],
+        createdAt: serverTimestamp()
+      }
+    ];
+
+    try {
+      const promises = techPrograms.map(prog => addDoc(collection(firestore, 'courses'), prog));
+      await Promise.all(promises);
+      toast({ title: "Technical Seed Complete", description: "Mobile Repair programs registered." });
+    } catch (error) {
+      toast({ title: "Seed Failed", variant: "destructive" });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold font-headline mb-2 uppercase tracking-tighter">Information <span className="text-primary">Enrichment Hub</span></h1>
-        <p className="text-muted-foreground">Architecting "Kumpleto ang impormasyon" (Complete Information) using technical AI augmentation.</p>
+      <div className="mb-12 flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-bold font-headline mb-2 uppercase tracking-tighter">Information <span className="text-primary">Enrichment Hub</span></h1>
+          <p className="text-muted-foreground">Architecting "Kumpleto ang impormasyon" (Complete Information) using technical AI augmentation.</p>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={handleSeedTechnicalPrograms} 
+          disabled={isSeeding}
+          className="border-primary/30 text-primary h-12 rounded-none uppercase font-bold text-xs tracking-widest"
+        >
+          {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
+          Seed technical Programs
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">

@@ -28,6 +28,7 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
+  { name: 'PROGRAMS', href: '/courses', hideForAdmin: true },
   { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
   { name: 'OFFICIAL LISTS', href: '/officials' },
