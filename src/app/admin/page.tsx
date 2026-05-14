@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { generateCourseContent, AdminCourseDescriptionOutput } from '@/ai/flows/admin-course-description-generator';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,11 +13,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Check, Globe, FileEdit, RefreshCw } from 'lucide-react';
+import { Sparkles, Save, Loader2, Wand2, Lock, Plus, Trash2, FileEdit, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
@@ -31,7 +30,6 @@ export default function AdminDashboard() {
   
   // Publication States
   const [isPublishing, setIsPublishing] = useState(false);
-  const [isSeeding, setIsSeeding] = useState(false);
   const [activeMode, setActiveMode] = useState<'ai' | 'manual'>('ai');
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -186,199 +184,6 @@ export default function AdminDashboard() {
       .finally(() => setIsPublishing(false));
   };
 
-  const handleSeedPrograms = async () => {
-    if (!firestore) return;
-    setIsSeeding(true);
-
-    const availableIds = officials?.map(o => o.id) || [];
-    const getRandomIds = () => {
-      if (availableIds.length === 0) return [];
-      const count = Math.min(availableIds.length, 1 + Math.floor(Math.random() * 2));
-      const shuffled = [...availableIds].sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, count);
-    };
-
-    const techPrograms = [
-      {
-        title: "Advanced iPhone Motherboard Repair",
-        summary: "Master board-level troubleshooting and microsoldering for Apple devices, focusing on A-series CPU reballing.",
-        description: "Deep dive into iPhone circuit analysis, short circuit detection, and advanced soldering techniques.",
-        ncLevel: "NC III",
-        durationHours: 60,
-        status: "Active",
-        imageId: "hardware-chip",
-        modules: [
-          { day: "Day 1-2", topic: "Schematic Reading", details: "ZXW and Phoneboard tracing." },
-          { day: "Day 3-5", topic: "IC Replacement", details: "Removing baseband and power ICs." }
-        ],
-        prerequisites: ["Electronics Basics"],
-        requiredTools: ["Digital Microscope", "ZXW Dongle"],
-        fees: { tuition: 25000, materials: 10000, total: 35000 },
-        faqs: [{ question: "Are boards provided?", answer: "Yes." }],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "Android Hardware & IC Specialist",
-        summary: "Professional training for Android device repair and IC replacement.",
-        description: "Diagnose Android hardware failures using advanced JTAG and ISP protocols.",
-        ncLevel: "NC II",
-        durationHours: 48,
-        status: "Active",
-        imageId: "motherboard-detail",
-        modules: [
-          { day: "Day 1-3", topic: "Board Architecture", details: "Samsung/Xiaomi components." }
-        ],
-        prerequisites: ["Basic Hardware Knowledge"],
-        requiredTools: ["UFI Box", "Heat Gun"],
-        fees: { tuition: 18000, materials: 7000, total: 25000 },
-        faqs: [{ question: "Generic Androids?", answer: "All major brands." }],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "MacBook Logic Board Restoration",
-        summary: "Advanced troubleshooting for macOS hardware, liquid damage, and power rails.",
-        description: "Restore failing MacBook logic boards using schematic analysis and board-view software.",
-        ncLevel: "NC III",
-        durationHours: 72,
-        status: "Active",
-        imageId: "soldering-station",
-        modules: [
-          { day: "Week 1", topic: "G3Hot Rails & Power States", details: "Understanding S0 to S5 power transitions." }
-        ],
-        prerequisites: ["Microsoldering Level 1"],
-        requiredTools: ["Power Supply", "Oscilloscope"],
-        fees: { tuition: 30000, materials: 15000, total: 45000 },
-        faqs: [{ question: "Includes M1 chips?", answer: "Yes, focused on newer architectures." }],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "Smartwatch Microsoldering Specialist",
-        summary: "Precision repair for Apple Watch and Samsung Galaxy Watch hardware.",
-        description: "Intensive training on extremely high-density boards found in wearables.",
-        ncLevel: "NC II",
-        durationHours: 32,
-        status: "Active",
-        imageId: "hardware-chip",
-        modules: [{ day: "Day 1", topic: "Precision Disassembly", details: "Removing OLEDs without damage." }],
-        prerequisites: ["Steady hands"],
-        requiredTools: ["0.1mm Solder Tip"],
-        fees: { tuition: 12000, materials: 4000, total: 16000 },
-        faqs: [],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "Data Recovery for Water-Damaged Devices",
-        summary: "Advanced chemical cleaning and ultrasonic restoration for data retrieval.",
-        description: "Techniques for temporary board restoration to recover critical user data.",
-        ncLevel: "NC III",
-        durationHours: 40,
-        status: "Active",
-        imageId: "electronics-lab",
-        modules: [{ day: "Day 1", topic: "Ultrasonic Principles", details: "Chemical solution ratios." }],
-        prerequisites: ["Basic Electronics"],
-        requiredTools: ["Ultrasonic Cleaner"],
-        fees: { tuition: 15000, materials: 10000, total: 25000 },
-        faqs: [],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "EMMC & UFS Memory Programming",
-        summary: "Mastering NAND memory protocols for dead-boot Android devices.",
-        description: "Full training on using UFI, EasyJTAG, and Medusa for memory repairs.",
-        ncLevel: "NC III",
-        durationHours: 40,
-        status: "Active",
-        imageId: "hardware-chip",
-        modules: [{ day: "Day 1", topic: "ISP Pinouts", details: "Soldering directly to EMMC lines." }],
-        prerequisites: ["Android Hardware Specialist"],
-        requiredTools: ["EasyJTAG Box"],
-        fees: { tuition: 20000, materials: 8000, total: 28000 },
-        faqs: [],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "Mobile Screen Refurbishing (OCA)",
-        summary: "Professional glass-only replacement for curved and flat AMOLED screens.",
-        description: "Using vacuum laminators and bubble removers for factory-finish screen repair.",
-        ncLevel: "NC II",
-        durationHours: 40,
-        status: "Active",
-        imageId: "soldering-station",
-        modules: [{ day: "Day 1", topic: "Glass Separation", details: "Wire techniques." }],
-        prerequisites: ["Basic Screen Disassembly"],
-        requiredTools: ["Vacuum Laminator"],
-        fees: { tuition: 15000, materials: 12000, total: 27000 },
-        faqs: [],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "Laptop Power Management Analysis",
-        summary: "In-depth diagnostic training for laptop charging and power distribution circuits.",
-        description: "Identify faulty mosfets, capacitors, and power controllers on PC laptops.",
-        ncLevel: "NC II",
-        durationHours: 48,
-        status: "Active",
-        imageId: "motherboard-detail",
-        modules: [{ day: "Day 1", topic: "19V Main Rail", details: "Tracing from DC Jack." }],
-        prerequisites: ["Basic Soldering"],
-        requiredTools: ["DC Power Supply"],
-        fees: { tuition: 18000, materials: 6000, total: 24000 },
-        faqs: [],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "Basic Electronics for Technicians",
-        summary: "The foundation for all board-level repair technicians.",
-        description: "Understanding V, I, R, and component functions like diodes and transistors.",
-        ncLevel: "NC I",
-        durationHours: 24,
-        status: "Active",
-        imageId: "electronics-lab",
-        modules: [{ day: "Day 1", topic: "Component ID", details: "Identifying SMD components." }],
-        prerequisites: ["None"],
-        requiredTools: ["Multimeter"],
-        fees: { tuition: 8000, materials: 3000, total: 11000 },
-        faqs: [],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      },
-      {
-        title: "Tablet Hardware & Battery Management",
-        summary: "Specialized repair for iPad and high-end Android tablets.",
-        description: "Battery controller replacement and large-screen board repair.",
-        ncLevel: "NC II",
-        durationHours: 32,
-        status: "Active",
-        imageId: "hardware-chip",
-        modules: [{ day: "Day 1", topic: "Large Scale Disassembly", details: "Heat pad usage." }],
-        prerequisites: ["Basic Smartphone Repair"],
-        requiredTools: ["Large Heat Pad"],
-        fees: { tuition: 14000, materials: 6000, total: 20000 },
-        faqs: [],
-        instructorIds: getRandomIds(),
-        createdAt: serverTimestamp()
-      }
-    ];
-
-    try {
-      const promises = techPrograms.map(prog => addDoc(collection(firestore, 'courses'), prog));
-      await Promise.all(promises);
-      toast({ title: "Registry Populated", description: "10 Technical Programs added with faculty links." });
-    } catch (error) {
-      toast({ title: "Seed Failed", variant: "destructive" });
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
   const updateModule = (index: number, field: string, value: string) => {
     const newModules = [...(courseData.modules || [])];
     newModules[index] = { ...newModules[index], [field]: value };
@@ -408,15 +213,6 @@ export default function AdminDashboard() {
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             New Program
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleSeedPrograms} 
-            disabled={isSeeding}
-            className="border-primary/30 text-primary h-12 rounded-none uppercase font-bold text-xs tracking-widest bg-black hover:bg-primary hover:text-black transition-all"
-          >
-            {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
-            Seed 10 Technical Programs
           </Button>
         </div>
       </div>
