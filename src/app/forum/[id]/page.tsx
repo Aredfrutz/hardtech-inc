@@ -117,42 +117,42 @@ export default function ThreadPage() {
   if (!thread) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-xl font-bold uppercase mb-4">Discussion Not Found</h2>
-        <Button asChild variant="outline" className="rounded-none">
-          <Link href="/forum">Back to Forum</Link>
+        <h2 className="text-xl font-bold uppercase mb-4 text-primary">Discussion Not Found</h2>
+        <Button asChild variant="outline" className="rounded-none border-primary/30">
+          <Link href="/forum">Back to Forum Registry</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#f4f4f4] min-h-screen pb-40">
+    <div className="bg-background min-h-screen pb-40">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-foreground/80 mb-2">Hardtech Forums</h1>
-          <div className="flex justify-between items-center bg-white p-2 border border-border shadow-sm">
-            <Link href="/forum" className="text-xs font-bold uppercase hover:underline px-2 flex items-center gap-2">
-              <ArrowLeft className="h-3 w-3" /> Back
+          <h1 className="text-2xl font-bold uppercase tracking-widest text-primary mb-4">Hardtech Discussion Registry</h1>
+          <div className="flex justify-between items-center bg-card p-4 border border-primary/20 shadow-lg">
+            <Link href="/forum" className="text-xs font-bold uppercase hover:text-primary flex items-center gap-2 tracking-widest">
+              <ArrowLeft className="h-4 w-4" /> Back to Index
             </Link>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <Button 
                 size="sm" 
-                variant="ghost" 
+                variant="outline" 
                 onClick={handleSummarize} 
                 disabled={isSummarizing || replies.length === 0}
-                className="text-[10px] font-bold uppercase h-7 px-2"
+                className="text-[10px] font-bold uppercase h-8 px-4 border-primary/30 text-primary hover:bg-primary/10"
               >
-                {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Sparkles className="h-3 w-3 mr-1" />}
-                Summarize
+                {isSummarizing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
+                Analyze Discussion
               </Button>
-              <div className="w-[1px] h-4 bg-border mx-1" />
-              <span className="text-[10px] font-bold uppercase text-muted-foreground">Sort</span>
+              <div className="w-[1px] h-6 bg-primary/20 mx-1" />
+              <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Protocol</span>
               <Select defaultValue="standard">
-                <SelectTrigger className="h-7 w-[100px] text-[10px] bg-black text-white rounded-none border-none">
+                <SelectTrigger className="h-8 w-[120px] text-[10px] bg-primary text-primary-foreground rounded-none border-none font-bold uppercase">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card border-primary/20">
                   <SelectItem value="standard">Standard</SelectItem>
                 </SelectContent>
               </Select>
@@ -161,90 +161,96 @@ export default function ThreadPage() {
         </div>
 
         {summary && (
-          <div className="mb-8 p-6 bg-primary/10 border-l-4 border-primary shadow-sm relative animate-in fade-in slide-in-from-top-4">
-             <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => setSummary(null)}>
-                <X className="h-3 w-3" />
+          <div className="mb-10 p-8 bg-primary/10 border-l-4 border-primary shadow-2xl relative animate-in fade-in slide-in-from-top-4 backdrop-blur-sm">
+             <Button variant="ghost" size="icon" className="absolute top-4 right-4 h-6 w-6 text-primary hover:bg-primary/20" onClick={() => setSummary(null)}>
+                <X className="h-4 w-4" />
               </Button>
-              <h3 className="text-xs font-bold uppercase text-primary mb-2 flex items-center gap-2">
-                <Sparkles className="h-3 w-3" /> Faculty Summary
+              <h3 className="text-xs font-bold uppercase text-primary mb-4 flex items-center gap-2 tracking-widest">
+                <Sparkles className="h-4 w-4" /> AI Faculty Intelligence Summary
               </h3>
-              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{summary}</p>
+              <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap font-medium">{summary}</p>
           </div>
         )}
 
-        <div className="bg-white border border-border shadow-sm mb-12">
+        <div className="bg-card border border-primary/10 shadow-2xl mb-12 overflow-hidden">
           {/* Header Bar */}
-          <div className="bg-black text-white px-4 py-2 flex justify-between items-center">
-            <span className="text-[10px] font-bold uppercase">Author</span>
-            <span className="text-[10px] font-bold uppercase flex-grow ml-44">Topic: {thread.title}</span>
+          <div className="bg-primary/10 border-b border-primary/20 px-6 py-3 flex justify-between items-center">
+            <span className="text-[10px] font-bold uppercase text-primary tracking-widest">Faculty/Member Profile</span>
+            <span className="text-[10px] font-bold uppercase text-primary tracking-widest flex-grow ml-32">Packet Subject: {thread.title}</span>
           </div>
 
           {/* Messages */}
           {repliesLoading ? (
-            <div className="p-20 text-center text-muted-foreground animate-pulse">Synchronizing thread...</div>
+            <div className="p-32 text-center text-muted-foreground animate-pulse font-bold uppercase tracking-widest">Synchronizing Thread Data...</div>
           ) : replies.length > 0 ? (
             replies.map((reply: any, index: number) => (
-              <div key={reply.id} className="flex border-b last:border-0 min-h-[250px]">
+              <div key={reply.id} className="flex border-b border-primary/10 last:border-0 min-h-[300px]">
                 {/* Author Sidebar */}
-                <div className="w-48 bg-secondary/10 border-r p-4 space-y-2 shrink-0">
-                  <span className="text-sm font-bold block">{reply.authorName}</span>
-                  <span className="text-[10px] uppercase text-muted-foreground block font-bold">Member</span>
-                  <Avatar className="h-16 w-16 rounded-none border border-border">
-                    <AvatarFallback className="bg-white rounded-none text-primary font-bold">
+                <div className="w-56 bg-secondary/20 border-r border-primary/10 p-6 space-y-4 shrink-0">
+                  <div className="space-y-1">
+                    <span className="text-sm font-bold block text-primary">{reply.authorName}</span>
+                    <span className="text-[10px] uppercase text-muted-foreground block font-bold tracking-widest">Academy Contributor</span>
+                  </div>
+                  <Avatar className="h-20 w-20 rounded-none border-2 border-primary/30 shadow-lg">
+                    <AvatarFallback className="bg-background text-primary font-bold text-xl rounded-none">
                       {reply.authorName?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="pt-4 space-y-1">
-                    <span className="text-[9px] uppercase text-muted-foreground block">Posts: --</span>
+                  <div className="pt-4 space-y-2 border-t border-primary/10">
+                    <div className="flex justify-between text-[9px] uppercase font-bold text-muted-foreground tracking-tighter">
+                      <span>Sync Status:</span>
+                      <span className="text-primary">ONLINE</span>
+                    </div>
                   </div>
                 </div>
                 
                 {/* Content Area */}
-                <div className="flex-grow p-6 flex flex-col">
-                  <div className="mb-4 pb-2 border-b flex justify-between items-center">
-                    <span className="text-[10px] text-muted-foreground uppercase font-mono">
-                      {reply.createdAt?.toDate ? format(reply.createdAt.toDate(), 'MMM d, yyyy · h:mm a') : 'Recently'}
+                <div className="flex-grow p-8 flex flex-col bg-background/30">
+                  <div className="mb-6 pb-3 border-b border-primary/10 flex justify-between items-center">
+                    <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-widest">
+                      Transmission Date: {reply.createdAt?.toDate ? format(reply.createdAt.toDate(), 'MMM d, yyyy · h:mm a') : 'Now'}
                     </span>
                     {user && (
                        <Button 
                        variant="ghost" 
                        size="sm" 
-                       className="h-6 text-[9px] uppercase font-bold text-muted-foreground hover:text-primary"
+                       className="h-7 text-[10px] uppercase font-bold text-muted-foreground hover:text-primary tracking-widest hover:bg-primary/10 px-4"
                        onClick={() => handleReplyToUser(reply.authorName)}
                      >
-                       <Reply className="h-3 w-3 mr-1" /> Quote
+                       <Reply className="h-4 w-4 mr-2" /> Reference
                      </Button>
                     )}
                   </div>
-                  <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap flex-grow">
+                  <div className="text-[15px] text-foreground/90 leading-relaxed whitespace-pre-wrap flex-grow font-sans tracking-wide">
                     {reply.content}
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="p-20 text-center text-muted-foreground">No content in this discussion.</div>
+            <div className="p-32 text-center text-muted-foreground font-bold uppercase tracking-widest opacity-30">No packet data found in this discussion.</div>
           )}
         </div>
       </div>
 
       {/* Reply Bar */}
       {user && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-30 shadow-2xl">
+        <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-primary/30 p-6 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
           <div className="container mx-auto max-w-6xl">
-            <form onSubmit={handleReply} className="flex gap-4 items-end">
+            <form onSubmit={handleReply} className="flex gap-6 items-end">
               <div className="flex-grow">
+                <Label className="text-[10px] uppercase text-primary mb-2 block font-bold tracking-widest">Transmit Reply</Label>
                 <Textarea 
                   ref={inputRef}
-                  placeholder="Type your reply here..." 
+                  placeholder="Draft your technical response..." 
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
-                  className="bg-[#fcfcfc] border-border rounded-none min-h-[60px] max-h-[150px] resize-none text-sm"
+                  className="bg-background/80 border-primary/20 rounded-none min-h-[80px] max-h-[200px] resize-none text-sm focus:border-primary focus:ring-1 focus:ring-primary shadow-inner"
                 />
               </div>
-              <Button type="submit" disabled={isSubmitting || !replyContent.trim()} className="h-[60px] rounded-none px-8 bg-black text-white uppercase font-bold text-xs tracking-wider">
-                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                <span className="ml-2">Submit Reply</span>
+              <Button type="submit" disabled={isSubmitting || !replyContent.trim()} className="h-[80px] rounded-none px-10 bg-primary text-primary-foreground uppercase font-bold text-xs tracking-[0.2em] shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                <span className="ml-3">Execute Upload</span>
               </Button>
             </form>
           </div>

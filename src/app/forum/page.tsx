@@ -27,7 +27,6 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 export default function ForumPage() {
@@ -87,38 +86,38 @@ export default function ForumPage() {
   };
 
   return (
-    <div className="bg-[#f4f4f4] min-h-screen pb-20">
+    <div className="bg-background min-h-screen pb-20">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-foreground/80 mb-2">Hardtech Forums</h1>
-          <div className="flex justify-between items-center bg-white p-2 border border-border shadow-sm">
+          <h1 className="text-3xl font-bold uppercase tracking-widest text-primary mb-6">Academy Discussion Forum</h1>
+          <div className="flex justify-between items-center bg-card p-4 border border-primary/20 shadow-lg shadow-primary/5">
             {user ? (
               <Button 
                 onClick={() => setShowForm(!showForm)} 
-                variant="ghost"
-                className="text-xs font-bold uppercase hover:bg-primary/10"
+                variant="outline"
+                className="text-xs font-bold uppercase border-primary/30 hover:bg-primary/10 text-primary"
               >
-                {showForm ? 'Cancel' : (
+                {showForm ? 'Cancel Operation' : (
                   <>
-                    <Plus className="mr-2 h-3 w-3" /> New Topic
+                    <Plus className="mr-2 h-3 w-3" /> New Discussion
                   </>
                 )}
               </Button>
             ) : (
-              <div className="text-xs font-medium text-muted-foreground px-2 flex items-center gap-2">
-                <Lock className="h-3 w-3" /> Sign in to post
+              <div className="text-xs font-bold text-muted-foreground px-2 flex items-center gap-2 uppercase tracking-widest">
+                <Lock className="h-3 w-3 text-primary" /> Authenticate to contribute
               </div>
             )}
             
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase text-muted-foreground">Sort</span>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Sort Protocol</span>
               <Select defaultValue="newest">
-                <SelectTrigger className="h-7 w-[100px] text-[10px] bg-black text-white rounded-none border-none">
+                <SelectTrigger className="h-8 w-[120px] text-[10px] bg-primary text-primary-foreground rounded-none border-none font-bold uppercase">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="popular">Popular</SelectItem>
+                <SelectContent className="bg-card border-primary/20">
+                  <SelectItem value="newest">Latest Sync</SelectItem>
+                  <SelectItem value="popular">High Activity</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -126,92 +125,100 @@ export default function ForumPage() {
         </div>
 
         {showForm && user && (
-          <div className="mb-8 p-6 bg-white border border-border shadow-md animate-in slide-in-from-top-4 duration-300">
-            <h2 className="text-sm font-bold uppercase mb-4 flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" /> Create Discussion
+          <div className="mb-8 p-8 bg-card border border-primary/20 shadow-xl animate-in slide-in-from-top-4 duration-300">
+            <h2 className="text-sm font-bold uppercase mb-6 flex items-center gap-2 text-primary tracking-widest">
+              <MessageSquare className="h-4 w-4" /> Initialize Discussion Thread
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="md:col-span-3">
+                  <Label className="text-[10px] uppercase text-muted-foreground mb-1 block">Topic Title</Label>
                   <Input 
-                    placeholder="Title" 
+                    placeholder="Enter discussion title..." 
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    className="h-10 text-sm rounded-none border-border"
+                    className="h-12 text-sm rounded-none border-primary/20 bg-background/50 focus:border-primary"
                     required
                   />
                 </div>
                 <div>
+                  <Label className="text-[10px] uppercase text-muted-foreground mb-1 block">Domain</Label>
                   <Select value={newCategory} onValueChange={setNewCategory}>
-                    <SelectTrigger className="h-10 text-sm rounded-none border-border">
+                    <SelectTrigger className="h-12 text-sm rounded-none border-primary/20 bg-background/50">
                       <SelectValue placeholder="Category" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Issues">Issues</SelectItem>
-                      <SelectItem value="Inquiries">Inquiries</SelectItem>
-                      <SelectItem value="Suggestions">Suggestions</SelectItem>
-                      <SelectItem value="General">General</SelectItem>
+                    <SelectContent className="bg-card border-primary/20">
+                      <SelectItem value="Issues">Hardware Issues</SelectItem>
+                      <SelectItem value="Inquiries">Tech Inquiries</SelectItem>
+                      <SelectItem value="Suggestions">Lab Suggestions</SelectItem>
+                      <SelectItem value="General">General Technical</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <Textarea 
-                placeholder="Content..." 
-                value={newContent}
-                onChange={(e) => setNewContent(e.target.value)}
-                className="min-h-[120px] text-sm rounded-none border-border"
-                required
-              />
+              <div>
+                <Label className="text-[10px] uppercase text-muted-foreground mb-1 block">Initial Transmission</Label>
+                <Textarea 
+                  placeholder="Details of the inquiry..." 
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  className="min-h-[150px] text-sm rounded-none border-primary/20 bg-background/50 focus:border-primary"
+                  required
+                />
+              </div>
               <div className="flex justify-end">
-                <Button type="submit" disabled={isSubmitting} className="rounded-none bg-black text-white hover:bg-black/90 px-8">
+                <Button type="submit" disabled={isSubmitting} className="rounded-none bg-primary text-primary-foreground hover:bg-primary/90 px-10 h-12 font-bold uppercase text-xs tracking-widest">
                   {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-                  Post Topic
+                  Broadcast Topic
                 </Button>
               </div>
             </form>
           </div>
         )}
 
-        <div className="bg-white border border-border shadow-sm overflow-hidden">
+        <div className="bg-card border border-primary/10 shadow-2xl overflow-hidden">
           <Table>
-            <TableHeader className="bg-black">
-              <TableRow className="hover:bg-transparent border-none">
-                <TableHead className="text-white font-bold uppercase text-[11px] h-10">Topic</TableHead>
-                <TableHead className="text-white font-bold uppercase text-[11px] h-10 text-center w-32">Category</TableHead>
-                <TableHead className="text-white font-bold uppercase text-[11px] h-10 text-center w-24">Replies</TableHead>
-                <TableHead className="text-white font-bold uppercase text-[11px] h-10 text-right w-40">Last Reply</TableHead>
+            <TableHeader className="bg-primary/5">
+              <TableRow className="hover:bg-transparent border-primary/20">
+                <TableHead className="text-primary font-bold uppercase text-[11px] h-12 tracking-widest">Topic</TableHead>
+                <TableHead className="text-primary font-bold uppercase text-[11px] h-12 text-center w-32 tracking-widest">Domain</TableHead>
+                <TableHead className="text-primary font-bold uppercase text-[11px] h-12 text-center w-24 tracking-widest">Activity</TableHead>
+                <TableHead className="text-primary font-bold uppercase text-[11px] h-12 text-right w-40 tracking-widest">Timestamp</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground animate-pulse">
-                    Loading threads...
+                  <TableCell colSpan={4} className="h-40 text-center text-muted-foreground animate-pulse uppercase text-xs font-bold tracking-widest">
+                    Retrieving Discussion Packets...
                   </TableCell>
                 </TableRow>
               ) : threads && threads.length > 0 ? (
                 threads.map((thread: any) => (
-                  <TableRow key={thread.id} className="group cursor-pointer hover:bg-secondary/20 transition-colors border-b last:border-0">
+                  <TableRow key={thread.id} className="group cursor-pointer hover:bg-primary/5 transition-colors border-primary/10">
                     <TableCell className="p-0">
-                      <Link href={`/forum/${thread.id}`} className="block px-4 py-4 text-sm font-medium hover:underline text-blue-600">
+                      <Link href={`/forum/${thread.id}`} className="block px-4 py-6 text-sm font-bold hover:text-primary transition-colors">
                         {thread.title}
+                        <span className="block text-[10px] text-muted-foreground font-medium uppercase mt-1">Initiated by {thread.authorName}</span>
                       </Link>
                     </TableCell>
-                    <TableCell className="text-center text-xs text-muted-foreground font-medium">
-                      {thread.category || 'General'}
+                    <TableCell className="text-center text-xs font-bold">
+                      <span className="px-2 py-1 bg-secondary/30 rounded text-muted-foreground">
+                        {thread.category || 'General'}
+                      </span>
                     </TableCell>
-                    <TableCell className="text-center text-xs text-muted-foreground font-medium">
-                      --
+                    <TableCell className="text-center text-xs text-muted-foreground font-mono">
+                      SYNCED
                     </TableCell>
-                    <TableCell className="text-right text-[10px] text-muted-foreground font-mono">
+                    <TableCell className="text-right text-[10px] text-muted-foreground font-mono uppercase">
                       {thread.createdAt?.toDate ? format(thread.createdAt.toDate(), 'MMM d, yyyy') : 'Pending'}
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
-                    No discussions found.
+                  <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-bold uppercase tracking-widest opacity-30">
+                    No active transmissions found.
                   </TableCell>
                 </TableRow>
               )}

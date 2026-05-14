@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Menu, X, LogIn, LogOut, Shield, GraduationCap } from 'lucide-react';
+import { Menu, X, LogIn, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/firebase';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -14,19 +14,17 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger,
-  DialogDescription
+  DialogTrigger
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
-  { name: 'ANNOUNCEMENTS/NEWS', href: '/announcements' },
-  { name: 'BOARD REPAIR PROGRAMS', href: '/courses' },
-  { name: 'LIST OF PASSERS', href: '#' },
-  { name: 'FORUM', href: '/forum' },
-  { name: 'ABOUT US', href: '#' },
+  { name: 'Announcements', href: '/announcements' },
+  { name: 'Official List', href: '/courses' },
+  { name: 'Forum', href: '/forum' },
+  { name: 'About Us', href: '#' },
 ];
 
 export function Navbar() {
@@ -56,8 +54,8 @@ export function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-[#0a0a0a] border-b border-primary/20 sticky top-0 z-50">
-      <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+    <nav className="w-full bg-[#0a0a0a]/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50">
+      <div className="container mx-auto px-6 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center border-2 border-primary overflow-hidden">
              <div className="w-8 h-8 bg-black rounded-full border border-primary flex items-center justify-center">
@@ -71,8 +69,8 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center gap-6">
-          <div className="flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-8">
+          <div className="flex items-center gap-6">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -80,8 +78,8 @@ export function Navbar() {
                   key={link.name}
                   href={link.href}
                   className={cn(
-                    "text-[10px] font-bold transition-all hover:text-primary uppercase tracking-wider px-2",
-                    isActive ? "text-primary" : "text-muted-foreground"
+                    "text-[11px] font-bold transition-all hover:text-primary uppercase tracking-widest px-2 relative py-1",
+                    isActive ? "text-primary after:content-[''] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-primary" : "text-muted-foreground"
                   )}
                 >
                   {link.name}
@@ -106,25 +104,38 @@ export function Navbar() {
               <div className="flex items-center gap-4">
                 <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="ghost" className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase">
+                    <Button variant="ghost" className="text-[11px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest">
                       Log In
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px] rounded-none border-primary">
+                  <DialogContent className="sm:max-w-[400px] rounded-none border-primary bg-card">
                     <DialogHeader>
-                      <DialogTitle className="uppercase text-sm tracking-widest">Academy Login</DialogTitle>
+                      <DialogTitle className="uppercase text-sm tracking-widest text-center">Academy Access</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleLoginSubmit} className="space-y-4 py-4">
+                    <form onSubmit={handleLoginSubmit} className="space-y-6 py-6">
                       <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
-                        <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} required className="rounded-none" />
+                        <Label htmlFor="username" className="text-xs uppercase tracking-widest text-muted-foreground">Username</Label>
+                        <Input 
+                          id="username" 
+                          value={username} 
+                          onChange={(e) => setUsername(e.target.value)} 
+                          required 
+                          className="rounded-none bg-background/50 border-primary/20 focus:border-primary h-12" 
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="rounded-none" />
+                        <Label htmlFor="password" className="text-xs uppercase tracking-widest text-muted-foreground">Password</Label>
+                        <Input 
+                          id="password" 
+                          type="password" 
+                          value={password} 
+                          onChange={(e) => setPassword(e.target.value)} 
+                          required 
+                          className="rounded-none bg-background/50 border-primary/20 focus:border-primary h-12" 
+                        />
                       </div>
-                      <Button type="submit" className="w-full bg-primary text-primary-foreground rounded-none uppercase font-bold text-xs">
-                        Sign In
+                      <Button type="submit" className="w-full bg-primary text-primary-foreground rounded-none uppercase font-bold text-xs h-12 tracking-widest hover:bg-primary/90">
+                        Authenticate
                       </Button>
                     </form>
                   </DialogContent>
@@ -132,7 +143,7 @@ export function Navbar() {
               </div>
             )}
 
-            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-5 rounded-full text-[10px] uppercase">
+            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-6 rounded-full text-[11px] uppercase tracking-widest h-10">
               <Link href="/enroll">Enroll Now</Link>
             </Button>
           </div>
@@ -146,19 +157,24 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-black border-t border-primary/10 p-6 flex flex-col gap-4 animate-in slide-in-from-top-2">
+        <div className="lg:hidden bg-black border-t border-primary/10 p-8 flex flex-col gap-6 animate-in slide-in-from-top-2">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className="text-xs font-bold text-muted-foreground hover:text-primary uppercase py-2"
+              className="text-xs font-bold text-muted-foreground hover:text-primary uppercase py-2 tracking-widest"
             >
               {link.name}
             </Link>
           ))}
-          <div className="pt-4 mt-2 border-t border-white/5">
-             <Button asChild className="w-full bg-primary text-primary-foreground font-bold uppercase text-[10px] h-10 rounded-full">
+          <div className="pt-6 mt-2 border-t border-white/5 flex flex-col gap-4">
+             {!user && (
+               <Button variant="outline" className="w-full border-primary/20 text-white uppercase font-bold text-[10px] h-12 rounded-full" onClick={() => setIsLoginOpen(true)}>
+                 Log In
+               </Button>
+             )}
+             <Button asChild className="w-full bg-primary text-primary-foreground font-bold uppercase text-[10px] h-12 rounded-full tracking-widest">
                 <Link href="/enroll" onClick={() => setIsOpen(false)}>Enroll Now</Link>
              </Button>
           </div>
