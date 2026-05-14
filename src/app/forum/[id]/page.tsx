@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, Loader2, User as UserIcon, MessageSquare, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, User as UserIcon, MessageSquare, Sparkles, X, Reply } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -29,6 +29,7 @@ export default function ThreadPage() {
   const [summary, setSummary] = useState<string | null>(null);
   
   const repliesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const threadRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -53,8 +54,8 @@ export default function ThreadPage() {
     }
   }, [replies]);
 
-  const handleReply = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleReply = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!user || !firestore || !id || !replyContent.trim()) return;
 
     setIsSubmitting(true);
@@ -69,6 +70,7 @@ export default function ThreadPage() {
       .then(() => {
         setReplyContent('');
         toast({ title: "Reply posted" });
+        scrollToBottom();
       })
       .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -78,6 +80,11 @@ export default function ThreadPage() {
         }));
       })
       .finally(() => setIsSubmitting(false));
+  };
+
+  const handleReplyToUser = (authorName: string) => {
+    setReplyContent((prev) => `@${authorName} ${prev}`);
+    inputRef.current?.focus();
   };
 
   const handleSummarize = async () => {
@@ -218,9 +225,21 @@ export default function ThreadPage() {
                         <span className="text-sm font-bold text-foreground">{reply.authorName}</span>
                         {index === 0 && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">TOPIC STARTER</span>}
                       </div>
-                      <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-tighter">
-                        {reply.createdAt?.toDate ? format(reply.createdAt.toDate(), 'h:mm a · MMM d') : 'Pending Sync'}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-tighter">
+                          {reply.createdAt?.toDate ? format(reply.createdAt.toDate(), 'h:mm a · MMM d') : 'Pending Sync'}
+                        </span>
+                        {user && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 px-2 text-[10px] text-muted-foreground hover:text-primary"
+                            onClick={() => handleReplyToUser(reply.authorName)}
+                          >
+                            <Reply className="h-3 w-3 mr-1" /> Reply
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{reply.content}</p>
                   </div>
@@ -233,7 +252,7 @@ export default function ThreadPage() {
               <p className="text-muted-foreground">No replies yet. Start the conversation!</p>
             </div>
           )}
-          <div ref={repliesEndRef} />
+          <div ref={repliesEndRef} className="h-1" />
         </div>
       </div>
 
@@ -244,27 +263,28 @@ export default function ThreadPage() {
             <form onSubmit={handleReply} className="flex gap-4 items-end">
               <div className="flex-grow">
                 <Textarea 
-                  placeholder="Share your expert opinion..." 
+                  ref={inputRef}
+                  placeholder="Share your technical insight..." 
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
-                  className="bg-secondary/20 border-white/10 min-h-[60px] max-h-[150px] resize-none"
+                  className="bg-secondary/20 border-white/10 min-h-[60px] max-h-[150px] resize-none focus-visible:ring-primary/50"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      handleReply(e as any);
+                      handleReply();
                     }
                   }}
                 />
               </div>
-              <Button type="submit" disabled={isSubmitting || !replyContent.trim()} className="h-[60px] px-6 bg-primary text-primary-foreground">
+              <Button type="submit" disabled={isSubmitting || !replyContent.trim()} className="h-[60px] px-6 bg-primary text-primary-foreground shadow-lg shadow-primary/20">
                 {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                <span className="ml-2 hidden sm:inline">Reply</span>
+                <span className="ml-2 hidden sm:inline">Send Reply</span>
               </Button>
             </form>
           ) : (
             <div className="p-4 rounded-xl bg-secondary/50 border border-dashed border-border text-center">
               <p className="text-sm text-muted-foreground">
-                Access denied. You must be signed in to contribute to the discussion.
+                Read-only mode. <span className="text-primary font-bold">Sign in</span> to join the conversation.
               </p>
             </div>
           )}
@@ -273,3 +293,4 @@ export default function ThreadPage() {
     </div>
   );
 }
+
