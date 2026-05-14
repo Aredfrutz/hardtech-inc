@@ -25,10 +25,28 @@
       "imageHint": "software code"
     },
     {
-      "id": "event-1",
-      "description": "A tech conference stage with neon lights",
-      "imageUrl": "https://picsum.photos/seed/event1/800/600",
-      "imageHint": "tech conference"
+      "id": "hardware-chip",
+      "description": "Detailed view of a silicon microchip",
+      "imageUrl": "https://picsum.photos/seed/microchip/800/600",
+      "imageHint": "microchip cpu"
+    },
+    {
+      "id": "motherboard-detail",
+      "description": "Close-up of integrated circuits on a motherboard",
+      "imageUrl": "https://picsum.photos/seed/motherboard/800/600",
+      "imageHint": "motherboard circuit"
+    },
+    {
+      "id": "soldering-station",
+      "description": "Professional soldering equipment in action",
+      "imageUrl": "https://picsum.photos/seed/soldering/800/600",
+      "imageHint": "soldering electronics"
+    },
+    {
+      "id": "electronics-lab",
+      "description": "Bench with multimeter and various electronic components",
+      "imageUrl": "https://picsum.photos/seed/electronics/800/600",
+      "imageHint": "electronics laboratory"
     },
     {
       "id": "news-1",

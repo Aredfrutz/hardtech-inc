@@ -112,7 +112,7 @@ export default function AdminDashboard() {
       },
       durationHours: courseData.duration || 40,
       status: "Active",
-      imageId: "course-coding",
+      imageId: "hardware-chip",
       createdAt: serverTimestamp()
     };
 
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
         ncLevel: "NC III",
         durationHours: 60,
         status: "Active",
-        imageId: "course-ai",
+        imageId: "hardware-chip",
         modules: [
           { day: "Day 1-2", topic: "Schematic Reading", details: "ZXW and Phoneboard tracing." },
           { day: "Day 3-5", topic: "IC Replacement", details: "Removing baseband and power ICs." }
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
         ncLevel: "NC II",
         durationHours: 48,
         status: "Active",
-        imageId: "course-robotics",
+        imageId: "motherboard-detail",
         modules: [
           { day: "Day 1-3", topic: "Board Architecture", details: "Samsung/Xiaomi components." }
         ],
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
         ncLevel: "NC III",
         durationHours: 72,
         status: "Active",
-        imageId: "hero-bg",
+        imageId: "soldering-station",
         modules: [
           { day: "Week 1", topic: "G3Hot Rails & Power States", details: "Understanding S0 to S5 power transitions." }
         ],
@@ -221,7 +221,7 @@ export default function AdminDashboard() {
         ncLevel: "NC II",
         durationHours: 32,
         status: "Active",
-        imageId: "course-ai",
+        imageId: "hardware-chip",
         modules: [{ day: "Day 1", topic: "Precision Disassembly", details: "Removing OLEDs without damage." }],
         prerequisites: ["Steady hands"],
         requiredTools: ["0.1mm Solder Tip"],
@@ -237,7 +237,7 @@ export default function AdminDashboard() {
         ncLevel: "NC III",
         durationHours: 40,
         status: "Active",
-        imageId: "course-coding",
+        imageId: "electronics-lab",
         modules: [{ day: "Day 1", topic: "Ultrasonic Principles", details: "Chemical solution ratios." }],
         prerequisites: ["Basic Electronics"],
         requiredTools: ["Ultrasonic Cleaner"],
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
         ncLevel: "NC III",
         durationHours: 40,
         status: "Active",
-        imageId: "course-robotics",
+        imageId: "hardware-chip",
         modules: [{ day: "Day 1", topic: "ISP Pinouts", details: "Soldering directly to EMMC lines." }],
         prerequisites: ["Android Hardware Specialist"],
         requiredTools: ["EasyJTAG Box"],
@@ -269,7 +269,7 @@ export default function AdminDashboard() {
         ncLevel: "NC II",
         durationHours: 40,
         status: "Active",
-        imageId: "news-1",
+        imageId: "soldering-station",
         modules: [{ day: "Day 1", topic: "Glass Separation", details: "Wire techniques." }],
         prerequisites: ["Basic Screen Disassembly"],
         requiredTools: ["Vacuum Laminator"],
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
         ncLevel: "NC II",
         durationHours: 48,
         status: "Active",
-        imageId: "course-coding",
+        imageId: "motherboard-detail",
         modules: [{ day: "Day 1", topic: "19V Main Rail", details: "Tracing from DC Jack." }],
         prerequisites: ["Basic Soldering"],
         requiredTools: ["DC Power Supply"],
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
         ncLevel: "NC I",
         durationHours: 24,
         status: "Active",
-        imageId: "course-ai",
+        imageId: "electronics-lab",
         modules: [{ day: "Day 1", topic: "Component ID", details: "Identifying SMD components." }],
         prerequisites: ["None"],
         requiredTools: ["Multimeter"],
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
         ncLevel: "NC II",
         durationHours: 32,
         status: "Active",
-        imageId: "course-robotics",
+        imageId: "hardware-chip",
         modules: [{ day: "Day 1", topic: "Large Scale Disassembly", details: "Heat pad usage." }],
         prerequisites: ["Basic Smartphone Repair"],
         requiredTools: ["Large Heat Pad"],
