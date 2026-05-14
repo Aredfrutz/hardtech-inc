@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from 'next/link';
@@ -140,7 +139,6 @@ export function Navbar() {
                           id="username" 
                           value={username} 
                           onChange={(e) => setUsername(e.target.value)} 
-                          placeholder="adminHT" 
                           required 
                         />
                       </div>
