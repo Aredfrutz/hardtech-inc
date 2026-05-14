@@ -21,7 +21,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { 
   Loader2, 
   ShieldAlert, 
-  Database, 
   Megaphone,
   Plus,
   Wand2,
@@ -39,7 +38,6 @@ export default function AnnouncementsPage() {
   
   const [announcements, setAnnouncements] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSeeding, setIsSeeding] = useState(false);
   const [showAdminForm, setShowAdminForm] = useState(false);
 
   // Form State
@@ -145,43 +143,6 @@ export default function AnnouncementsPage() {
     }
   };
 
-  const handleSeedAnnouncements = async () => {
-    if (!firestore) return;
-    setIsSeeding(true);
-
-    const mockData = [
-      {
-        title: "ACTUAL ADVANCE BOARD-LEVEL TRAINING",
-        body: "Hardtech Information Technology Corporation proudly invites aspiring technicians and professionals to join our Actual Advance Board-Level Training. Gain industry-ready skills through hands-on instruction led by seasoned experts.\n\nWHERE: PANABO & TAGUM\nWHEN: April 18, 2026\nZAMBOANGA CITY\nSchedule to be Announced\n\nTraining Highlights:\n- Cellphone Repair for Android and Apple Devices\n- Circuit Line Tracing and Troubleshooting\n- Microsoldering and Reballing Techniques\n- Professional Technician Tips and Tricks",
-        priority: "High",
-        timestamp: serverTimestamp()
-      },
-      {
-        title: "INFRASTRUCTURE PATCH: V4.2 PROTOCOL",
-        body: "Hardtech Information Technology Corporation is upgrading the main laboratory infrastructure to V4.2. This patch introduces optimized voltage monitoring and board trace visualization tools for all student workstations.",
-        priority: "Medium",
-        timestamp: serverTimestamp()
-      },
-      {
-        title: "ACADEMY ROBOTICS SHOWCASE 2024",
-        body: "Join us for the annual Hardtech Robotics Showcase where students display their final projects. Witness advanced diagnostics and circuit isolation strategies in action.",
-        priority: "Low",
-        timestamp: serverTimestamp()
-      }
-    ];
-
-    try {
-      const promises = mockData.map(data => addDoc(collection(firestore, 'announcements'), data));
-      await Promise.all(promises);
-      toast({ title: "Seeding Complete", description: "Academy announcements added." });
-      fetchAnnouncements();
-    } catch (error) {
-      toast({ title: "Seeding Failed", variant: "destructive" });
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
   const isAdmin = user?.role === 'admin';
   const mainAnnouncement = announcements[0];
   const sideAnnouncements = announcements.slice(1);
@@ -203,15 +164,6 @@ export default function AnnouncementsPage() {
               className="rounded-none border-primary/30 text-primary h-8 text-[10px] uppercase font-bold"
             >
               {showAdminForm ? 'Close Console' : <><Plus className="h-3 w-3 mr-2" /> New Broadcast</>}
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={handleSeedAnnouncements} 
-              disabled={isSeeding}
-              className="rounded-none border-primary/30 text-primary h-8 text-[10px] uppercase font-bold"
-            >
-              {isSeeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Database className="h-3 w-3 mr-2" /> Seed Data</>}
             </Button>
           </div>
         </div>
