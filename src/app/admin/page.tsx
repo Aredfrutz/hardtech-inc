@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { generateCourseContent, AdminCourseDescriptionOutput } from '@/ai/flows/admin-course-description-generator';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Image as ImageIcon, Check, Globe } from 'lucide-react';
+import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Image as ImageIcon, Check, Globe, FileEdit, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -34,6 +34,7 @@ export default function AdminDashboard() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [activeMode, setActiveMode] = useState<'ai' | 'manual'>('ai');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Fetch Officials for selection
   const officialsQuery = useMemoFirebase(() => {
@@ -41,6 +42,13 @@ export default function AdminDashboard() {
     return query(collection(firestore, 'officials'), orderBy('name', 'asc'));
   }, [firestore]);
   const { data: officials } = useCollection(officialsQuery);
+
+  // Fetch Existing Courses for Editing
+  const coursesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'courses'), orderBy('title', 'asc'));
+  }, [firestore]);
+  const { data: existingCourses } = useCollection(coursesQuery);
 
   // Manual / AI Content State
   const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number; selectedInstructorIds: string[]; selectedImageId: string }>>({
@@ -74,6 +82,49 @@ export default function AdminDashboard() {
     );
   }
 
+  const resetForm = () => {
+    setCourseData({
+      courseTitle: '',
+      description: '',
+      summary: '',
+      ncLevel: 'NC II',
+      modules: [{ day: 'Day 1', topic: '', details: '' }],
+      prerequisites: [''],
+      requiredTools: [''],
+      faqs: [{ question: '', answer: '' }],
+      tuition: 15000,
+      materials: 5000,
+      duration: 40,
+      selectedInstructorIds: [],
+      selectedImageId: 'hardware-chip'
+    });
+    setKeywords('');
+    setEditingId(null);
+  };
+
+  const handleSelectCourseToEdit = (courseId: string) => {
+    const course = existingCourses?.find(c => c.id === courseId);
+    if (!course) return;
+
+    setEditingId(courseId);
+    setCourseData({
+      courseTitle: course.title,
+      summary: course.summary,
+      description: course.description,
+      ncLevel: course.ncLevel,
+      modules: course.modules || [{ day: 'Day 1', topic: '', details: '' }],
+      prerequisites: course.prerequisites || [''],
+      requiredTools: course.requiredTools || [''],
+      faqs: course.faqs || [{ question: '', answer: '' }],
+      tuition: course.fees?.tuition || 0,
+      materials: course.fees?.materials || 0,
+      duration: course.durationHours || 40,
+      selectedInstructorIds: course.instructorIds || [],
+      selectedImageId: course.imageId || 'hardware-chip'
+    });
+    toast({ title: "Program Loaded", description: "You are now editing an existing curriculum entry." });
+  };
+
   const handleAiGenerate = async () => {
     if (!keywords) {
       toast({ title: "Missing keywords", description: "Enter some keywords first.", variant: "destructive" });
@@ -100,49 +151,39 @@ export default function AdminDashboard() {
 
     const finalData = {
       title: courseData.courseTitle,
-      summary: courseData.summary,
-      description: courseData.description,
-      ncLevel: courseData.ncLevel,
-      modules: courseData.modules,
-      prerequisites: courseData.prerequisites,
-      requiredTools: courseData.requiredTools,
-      faqs: courseData.faqs,
+      summary: courseData.summary || '',
+      description: courseData.description || '',
+      ncLevel: courseData.ncLevel || 'NC II',
+      modules: courseData.modules || [],
+      prerequisites: courseData.prerequisites || [],
+      requiredTools: courseData.requiredTools || [],
+      faqs: courseData.faqs || [],
       instructorIds: courseData.selectedInstructorIds || [],
       fees: {
-        tuition: courseData.tuition || 15000,
-        materials: courseData.materials || 5000,
+        tuition: courseData.tuition || 0,
+        materials: courseData.materials || 0,
         total: (courseData.tuition || 0) + (courseData.materials || 0)
       },
       durationHours: courseData.duration || 40,
       status: "Active",
       imageId: courseData.selectedImageId || "hardware-chip",
-      createdAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
+      ...(editingId ? {} : { createdAt: serverTimestamp() })
     };
 
-    addDoc(collection(firestore, 'courses'), finalData)
+    const action = editingId 
+      ? updateDoc(doc(firestore, 'courses', editingId), finalData)
+      : addDoc(collection(firestore, 'courses'), finalData);
+
+    action
       .then(() => {
-        toast({ title: "Program Published!", description: "Curriculum registry updated." });
-        setCourseData({
-          courseTitle: '',
-          description: '',
-          summary: '',
-          ncLevel: 'NC II',
-          modules: [{ day: 'Day 1', topic: '', details: '' }],
-          prerequisites: [''],
-          requiredTools: [''],
-          faqs: [{ question: '', answer: '' }],
-          tuition: 15000,
-          materials: 5000,
-          duration: 40,
-          selectedInstructorIds: [],
-          selectedImageId: 'hardware-chip'
-        });
-        setKeywords('');
+        toast({ title: editingId ? "Program Updated!" : "Program Published!", description: "Curriculum registry synchronized." });
+        resetForm();
       })
       .catch(async (error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'courses',
-          operation: 'create',
+          path: editingId ? `courses/${editingId}` : 'courses',
+          operation: editingId ? 'update' : 'create',
           requestResourceData: finalData
         }));
       })
@@ -369,15 +410,25 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-bold font-headline mb-2 uppercase tracking-tighter">Information <span className="text-primary underline decoration-primary decoration-4 underline-offset-8">Enrichment Hub</span></h1>
           <p className="text-muted-foreground uppercase text-[10px] font-bold tracking-widest mt-4">Manual Registry and AI Technical Augmentation</p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={handleSeedPrograms} 
-          disabled={isSeeding}
-          className="border-primary/30 text-primary h-12 rounded-none uppercase font-bold text-xs tracking-widest bg-black hover:bg-primary hover:text-black transition-all"
-        >
-          {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
-          Seed 10 Technical Programs
-        </Button>
+        <div className="flex gap-4">
+          <Button 
+            variant="outline" 
+            onClick={resetForm}
+            className="border-white/10 h-12 rounded-none uppercase font-bold text-xs tracking-widest bg-black hover:bg-white hover:text-black transition-all"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            New Program
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleSeedPrograms} 
+            disabled={isSeeding}
+            className="border-primary/30 text-primary h-12 rounded-none uppercase font-bold text-xs tracking-widest bg-black hover:bg-primary hover:text-black transition-all"
+          >
+            {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
+            Seed 10 Technical Programs
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -385,13 +436,34 @@ export default function AdminDashboard() {
           <Card className="bg-card border-primary/20 border-2 rounded-none shadow-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 uppercase text-sm tracking-widest">
-                <Sparkles className="h-4 w-4 text-primary" /> Technical Draftsman
+                <FileEdit className="h-4 w-4 text-primary" /> Program Selector
               </CardTitle>
               <CardDescription className="text-[10px] uppercase">
-                Choose entry protocol for curriculum registry.
+                Load current database entries for modification.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold">Select Active Program</Label>
+                <Select onValueChange={handleSelectCourseToEdit} value={editingId || ''}>
+                  <SelectTrigger className="bg-secondary/30 h-12 rounded-none border-primary/20">
+                    <SelectValue placeholder="-- SELECT PROGRAM --" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-primary/20">
+                    {existingCourses?.map(course => (
+                      <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
+                    ))}
+                    {!existingCourses?.length && <SelectItem value="none" disabled>No programs in registry</SelectItem>}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-full h-px bg-white/5 my-6" />
+
+              <CardTitle className="flex items-center gap-2 uppercase text-sm tracking-widest">
+                <Sparkles className="h-4 w-4 text-primary" /> Technical Draftsman
+              </CardTitle>
+              
               <div className="flex gap-2 p-1 bg-secondary/20 border border-white/10">
                 <Button 
                   onClick={() => setActiveMode('ai')} 
@@ -428,7 +500,7 @@ export default function AdminDashboard() {
               ) : (
                 <div className="space-y-4 animate-in fade-in duration-300">
                   <p className="text-[10px] text-muted-foreground uppercase text-center font-bold">Manual Entry Active</p>
-                  <Button onClick={() => setKeywords('')} variant="outline" className="w-full h-12 rounded-none uppercase text-xs font-bold border-white/10">
+                  <Button onClick={resetForm} variant="outline" className="w-full h-12 rounded-none uppercase text-xs font-bold border-white/10">
                     Clear Workspace
                   </Button>
                 </div>
@@ -449,7 +521,9 @@ export default function AdminDashboard() {
                   placeholder="ENTER PROGRAM TITLE"
                 />
               </div>
-              <Badge className="bg-primary text-black font-bold text-[10px] uppercase h-8 px-4">REGISTRY WORKSPACE</Badge>
+              <Badge className="bg-primary text-black font-bold text-[10px] uppercase h-8 px-4">
+                {editingId ? 'UPDATING REGISTRY' : 'REGISTRY WORKSPACE'}
+              </Badge>
             </CardHeader>
             
             <CardContent className="p-0 flex-grow">
@@ -670,7 +744,7 @@ export default function AdminDashboard() {
                 className="bg-primary text-black font-bold uppercase text-xs px-12 h-14 tracking-widest rounded-none shadow-lg hover:bg-white transition-all"
                >
                  {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                 Execute Publication
+                 {editingId ? 'Update Registry' : 'Execute Publication'}
                </Button>
             </CardFooter>
           </Card>
