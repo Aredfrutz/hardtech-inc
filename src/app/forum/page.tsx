@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -27,10 +26,11 @@ export default function ForumPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  // CRITICAL: Only initiate query if user is authenticated to satisfy Security Rules
   const threadsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    if (!firestore || !user) return null;
     return query(collection(firestore, 'forum_threads'), orderBy('createdAt', 'desc'));
-  }, [firestore]);
+  }, [firestore, user]);
 
   const { data: threads, loading } = useCollection(threadsQuery);
 
@@ -104,7 +104,6 @@ export default function ForumPage() {
         )}
       </div>
 
-      {/* New Thread Form */}
       {showForm && user && (
         <Card className="mb-12 border-primary/20 bg-primary/5 animate-in slide-in-from-top-4 duration-300">
           <CardHeader>
@@ -145,7 +144,13 @@ export default function ForumPage() {
 
       {/* Threads List */}
       <div className="space-y-4">
-        {loading ? (
+        {!user ? (
+          <div className="text-center py-24 border-2 border-dashed rounded-3xl bg-secondary/5 border-border/50">
+            <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-6 opacity-10" />
+            <h3 className="text-2xl font-bold mb-2">Access Denied</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">Please sign in to view the community discussions and participate in the forum.</p>
+          </div>
+        ) : loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
             <p className="text-muted-foreground animate-pulse">Establishing real-time link...</p>

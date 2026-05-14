@@ -58,7 +58,8 @@ export function useFirebaseApp() {
 
 export function useFirestore() {
   const { firestore } = useFirebase();
-  return { firestore };
+  // Return both 'firestore' and 'db' alias
+  return { firestore, db: firestore };
 }
 
 export function useAuth() {
