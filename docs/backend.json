@@ -87,6 +87,20 @@
         "fileUrl": { "type": "string" }
       },
       "required": ["title", "description"]
+    },
+    "CertificateRequest": {
+      "title": "Training Certificate Request",
+      "description": "Formal digital request for a course completion certificate.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "courseName": { "type": "string" },
+        "completionDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "requestedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "fullName", "courseName", "completionDate", "status", "requestedAt"]
     }
   },
   "auth": {
@@ -120,6 +134,10 @@
     "/public_forms/{formId}": {
       "schema": "PublicForm",
       "description": "Repository of public service forms."
+    },
+    "/certificate_requests/{requestId}": {
+      "schema": "CertificateRequest",
+      "description": "Collection of student certificate requests."
     }
   }
 }
