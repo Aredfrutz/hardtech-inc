@@ -28,7 +28,6 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import Link from 'next/link';
 
 export default function AnnouncementsPage() {
   const { firestore } = useFirestore();
@@ -116,14 +115,14 @@ export default function AnnouncementsPage() {
         timestamp: serverTimestamp()
       },
       {
-        title: "Hardtech Launches Advance Board-Level Training",
-        body: "Hardtech Information Technology Corporation proudly announces the expansion of its Actual Advance Board-Level Training Program, aimed at equipping aspiring technicians with industry-ready skills in mobile device repair and electronics troubleshooting.",
+        title: "Infrastructure Patch: V4.2 Protocol Deployment",
+        body: "Hardtech Information Technology Corporation is upgrading the main laboratory infrastructure to V4.2 on the scheduled technical maintenance window. This patch introduces optimized voltage monitoring and board trace visualization tools for all student workstations. Please ensure all ongoing micro-soldering tasks are backed up before the sync window.",
         priority: "Medium",
         timestamp: serverTimestamp()
       },
       {
-        title: "Enrollment Opening for Advanced Board Level",
-        body: "Hardtech Information Technology Corporation is pleased to announce the opening of enrollment for its Advanced Board Level and Cellphone Repair Training Program. Registration is now open for aspiring technicians and professionals seeking industry-standard, hands-on education...",
+        title: "Academy Robotics Showcase 2024",
+        body: "Join us for the annual Hardtech Robotics Showcase where students from the Advanced Board Level and Cellphone Repair Training Programs display their final projects. Witness advanced diagnostics and circuit isolation strategies in action. The event will be hosted at the Panabo Center Hub on December 15.",
         priority: "Low",
         timestamp: serverTimestamp()
       }
@@ -259,9 +258,6 @@ export default function AnnouncementsPage() {
                   <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
                     {news.body}
                   </p>
-                  <Button variant="outline" className="bg-[#a3ff00] hover:bg-[#8ee000] text-black border-none font-black uppercase text-[9px] px-6 h-8 rounded-full mt-2">
-                    READ FULL LOG
-                  </Button>
                 </div>
               ))}
             </div>
