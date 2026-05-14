@@ -22,7 +22,6 @@ import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { name: 'Announcements', href: '/announcements' },
-  { name: 'Official List', href: '/courses' },
   { name: 'Public Service Forum', href: '/forum' },
   { name: 'Forms', href: '/forms' },
   { name: 'Officials', href: '/officials' },
