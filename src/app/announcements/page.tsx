@@ -54,7 +54,7 @@ export default function AnnouncementsPage() {
       const announcementsQuery = query(
         announcementsRef,
         orderBy('timestamp', 'desc'),
-        limit(10)
+        limit(15)
       );
       const snapshot = await getDocs(announcementsQuery);
       const fetched = snapshot.docs.map(doc => ({
@@ -213,7 +213,7 @@ export default function AnnouncementsPage() {
       )}
 
       <div className="flex flex-col lg:flex-row flex-grow">
-        {/* Left Column: Announcements (White Theme) */}
+        {/* Left Column: Spotlight (White Theme) */}
         <div className="w-full lg:w-[60%] bg-white text-black p-8 lg:p-20 relative overflow-y-auto max-h-screen">
           <div className="max-w-2xl mx-auto">
             <h1 className="text-2xl font-black uppercase tracking-tight mb-8">ANNOUNCEMENTS</h1>
@@ -222,27 +222,22 @@ export default function AnnouncementsPage() {
               <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-black" /></div>
             ) : mainAnnouncement ? (
               <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
-                <h2 className="text-xl font-black uppercase leading-tight">{mainAnnouncement.title}</h2>
-                <div className="text-sm leading-relaxed whitespace-pre-wrap space-y-4">
-                  {mainAnnouncement.body}
+                <div className="flex items-center gap-2">
+                   <div className="h-1 w-12 bg-[#a3ff00]" />
+                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Current Broadcast</span>
                 </div>
-                
-                <div className="pt-8 flex flex-col gap-6">
-                  <Button className="bg-[#a3ff00] hover:bg-[#8ee000] text-black font-black uppercase px-8 py-6 rounded-full w-fit shadow-xl">
-                    SAVE YOUR SLOT
-                  </Button>
-                  <Link href="#" className="text-[10px] font-black uppercase tracking-widest hover:underline">
-                    MORE ANNOUNCEMENTS &gt;&gt;&gt;
-                  </Link>
+                <h2 className="text-3xl font-black uppercase leading-[1.1] tracking-tighter">{mainAnnouncement.title}</h2>
+                <div className="text-sm leading-relaxed whitespace-pre-wrap space-y-4 font-medium opacity-80">
+                  {mainAnnouncement.body}
                 </div>
               </div>
             ) : (
-              <div className="py-20 text-center text-muted-foreground uppercase text-xs font-bold tracking-widest">No primary announcement available.</div>
+              <div className="py-20 text-center text-muted-foreground uppercase text-xs font-bold tracking-widest">No primary broadcast available.</div>
             )}
           </div>
         </div>
 
-        {/* Right Column: Latest News (Dark Theme) */}
+        {/* Right Column: News Feed (Dark Theme) */}
         <div className="w-full lg:w-[40%] bg-[#080808] text-white p-8 lg:p-12 border-l border-white/5 overflow-y-auto max-h-screen">
           <h2 className="text-[#a3ff00] text-xl font-black uppercase tracking-tight mb-12">LATEST NEWS</h2>
           
@@ -253,26 +248,25 @@ export default function AnnouncementsPage() {
               {sideAnnouncements.map((news) => (
                 <div key={news.id} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                   <h3 className="text-sm font-black uppercase leading-tight tracking-wide">{news.title}</h3>
-                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    {news.timestamp?.toDate ? format(news.timestamp.toDate(), 'd MMMM yyyy') : 'Recent'}
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      {news.timestamp?.toDate ? format(news.timestamp.toDate(), 'd MMMM yyyy') : 'Recent'}
+                    </div>
+                    {news.priority === 'High' && (
+                      <span className="text-[8px] font-black bg-red-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">Priority</span>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
                     {news.body}
                   </p>
                   <Button variant="outline" className="bg-[#a3ff00] hover:bg-[#8ee000] text-black border-none font-black uppercase text-[9px] px-6 h-8 rounded-full mt-2">
-                    READ MORE
+                    READ FULL LOG
                   </Button>
                 </div>
               ))}
-              
-              <div className="pt-12 text-right">
-                <Link href="#" className="text-[#a3ff00] text-[10px] font-black uppercase tracking-widest hover:underline">
-                  MORE NEWS
-                </Link>
-              </div>
             </div>
           ) : (
-            <div className="py-20 text-center text-muted-foreground uppercase text-[10px] font-bold tracking-widest">No recent news found.</div>
+            <div className="py-20 text-center text-muted-foreground uppercase text-[10px] font-bold tracking-widest">No additional news logs found.</div>
           )}
         </div>
       </div>
