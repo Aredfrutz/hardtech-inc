@@ -13,11 +13,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2 } from 'lucide-react';
+import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Image as ImageIcon, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AdminDashboard() {
   const { firestore } = useFirestore();
@@ -41,7 +43,7 @@ export default function AdminDashboard() {
   const { data: officials } = useCollection(officialsQuery);
 
   // Manual / AI Content State
-  const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number; selectedInstructorIds: string[] }>>({
+  const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number; selectedInstructorIds: string[]; selectedImageId: string }>>({
     courseTitle: '',
     description: '',
     summary: '',
@@ -53,7 +55,8 @@ export default function AdminDashboard() {
     tuition: 15000,
     materials: 5000,
     duration: 40,
-    selectedInstructorIds: []
+    selectedInstructorIds: [],
+    selectedImageId: 'hardware-chip'
   });
 
   if (userLoading) return null;
@@ -112,7 +115,7 @@ export default function AdminDashboard() {
       },
       durationHours: courseData.duration || 40,
       status: "Active",
-      imageId: "hardware-chip",
+      imageId: courseData.selectedImageId || "hardware-chip",
       createdAt: serverTimestamp()
     };
 
@@ -131,7 +134,8 @@ export default function AdminDashboard() {
           tuition: 15000,
           materials: 5000,
           duration: 40,
-          selectedInstructorIds: []
+          selectedInstructorIds: [],
+          selectedImageId: 'hardware-chip'
         });
         setKeywords('');
       })
@@ -149,7 +153,6 @@ export default function AdminDashboard() {
     if (!firestore) return;
     setIsSeeding(true);
 
-    // Pick a few real instructor IDs if available
     const availableIds = officials?.map(o => o.id) || [];
     const getRandomIds = () => {
       if (availableIds.length === 0) return [];
@@ -450,6 +453,7 @@ export default function AdminDashboard() {
                   <TabsTrigger value="curriculum" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Syllabus</TabsTrigger>
                   <TabsTrigger value="faculty" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Faculty</TabsTrigger>
                   <TabsTrigger value="logistics" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Logistics</TabsTrigger>
+                  <TabsTrigger value="imagery" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Imagery</TabsTrigger>
                 </TabsList>
                 
                 <div className="p-8 overflow-y-auto max-h-[500px]">
@@ -595,6 +599,43 @@ export default function AdminDashboard() {
                             />
                           </div>
                         </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="imagery" className="mt-0 space-y-8">
+                    <div className="space-y-4">
+                      <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Protocol: Program Imagery Selection</Label>
+                      <p className="text-[10px] text-muted-foreground uppercase">Select a high-fidelity visual or provide a custom reference.</p>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {PlaceHolderImages.map((img) => (
+                          <div 
+                            key={img.id}
+                            onClick={() => setCourseData({...courseData, selectedImageId: img.id})}
+                            className={`relative aspect-video border-2 cursor-pointer transition-all overflow-hidden ${courseData.selectedImageId === img.id ? 'border-primary ring-2 ring-primary/20' : 'border-white/10 grayscale hover:grayscale-0'}`}
+                          >
+                            <Image src={img.imageUrl} alt={img.description} fill className="object-cover" />
+                            {courseData.selectedImageId === img.id && (
+                              <div className="absolute top-2 right-2 bg-primary text-black p-1">
+                                <Check className="h-3 w-3" />
+                              </div>
+                            )}
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-2 opacity-0 hover:opacity-100 transition-opacity">
+                              <p className="text-[8px] font-bold uppercase truncate">{img.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="pt-6 border-t border-white/5 space-y-2">
+                        <Label className="text-[10px] uppercase font-bold opacity-50">Custom Imagery Ref (Optional)</Label>
+                        <Input 
+                          placeholder="Image ID or URL" 
+                          value={courseData.selectedImageId || ''}
+                          onChange={(e) => setCourseData({...courseData, selectedImageId: e.target.value})}
+                          className="bg-secondary/20 h-10 rounded-none border-white/10 text-xs"
+                        />
                       </div>
                     </div>
                   </TabsContent>
