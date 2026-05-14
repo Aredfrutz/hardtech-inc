@@ -1,57 +1,16 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // --- Prototype Rules: Highly Permissive ---
+    // Since we are using a custom mock auth for the prototype UI, 
+    // we allow public access to facilitate development and testing.
     
-    // --- Helper Functions ---
+    match /{document=**} {
+      allow read, write: if true;
+    }
     
-    // Check if the request is from an authenticated user
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Check if the authenticated user has the 'admin' role
-    function isAdmin() {
-      return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Check if the authenticated user is the author of the document
-    function isOwner(authorId) {
-      return isAuthenticated() && request.auth.uid == authorId;
-    }
-
-    // --- Collection Rules ---
-
-    // Users Collection: Users can manage their own profile; admins can read all profiles.
-    match /users/{userId} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
-      allow read: if isAdmin();
-    }
-
-    // Courses Collection: Publicly readable; Admin only write/update/delete.
-    match /courses/{courseId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Announcements Collection: Publicly readable; Admin only write/update/delete.
-    match /announcements/{announcementId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Forum Threads: Open to view from everyone. Authenticated users can create; only authors can update or delete.
-    match /forum_threads/{threadId} {
-      allow read: if true;
-      allow create: if isAuthenticated();
-      allow update, delete: if isOwner(resource.data.authorId);
-
-      // Nested Replies Subcollection: Same visibility and authorship logic.
-      match /replies/{replyId} {
-        allow read: if true;
-        allow create: if isAuthenticated();
-        allow update, delete: if isOwner(resource.data.authorId);
-      }
-    }
+    // In a production environment, you would revert to strict rules 
+    // using Firebase Auth and user role documents.
   }
 }

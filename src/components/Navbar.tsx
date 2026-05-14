@@ -5,11 +5,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Cpu, Menu, X, LogIn, LogOut, User, Zap } from 'lucide-react';
+import { Cpu, Menu, X, LogIn, LogOut, User, Zap, Shield, GraduationCap } from 'lucide-react';
 import { useState } from 'react';
-import { useAuth, useUser } from '@/firebase';
-import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/firebase';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogDescription
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { name: 'Official List', href: '/courses' },
@@ -20,25 +30,27 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const { auth } = useAuth();
-  const { user } = useUser();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const { user, login, logout } = useAuth();
+  const { toast } = useToast();
 
-  const handleSignIn = async () => {
-    if (!auth) return;
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Error signing in", error);
-    }
-  };
-
-  const handleSignOut = async () => {
-    if (!auth) return;
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Error signing out", error);
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = login(username, password);
+    if (success) {
+      toast({ title: "Welcome back!", description: `Logged in as ${username}` });
+      setIsLoginOpen(false);
+      setUsername('');
+      setPassword('');
+    } else {
+      toast({ 
+        title: "Login failed", 
+        description: "Invalid credentials. Please check your username and password.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -74,6 +86,17 @@ export function Navbar() {
                 </Link>
               );
             })}
+            {user?.role === 'admin' && (
+              <Link
+                href="/admin"
+                className={cn(
+                  "text-sm font-medium transition-all hover:text-primary py-2",
+                  pathname === '/admin' ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                Admin Panel
+              </Link>
+            )}
           </div>
           
           <div className="flex items-center gap-6 border-l border-white/10 pl-8">
@@ -81,21 +104,63 @@ export function Navbar() {
               <div className="flex items-center gap-4">
                 <div className="flex flex-col items-end hidden lg:flex">
                   <span className="text-xs font-bold leading-none">{user.displayName}</span>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Active Student</span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                    {user.role === 'admin' ? <Shield className="h-2 w-2 text-primary" /> : <GraduationCap className="h-2 w-2" />}
+                    {user.role}
+                  </span>
                 </div>
                 <Avatar className="h-9 w-9 border-2 border-primary/20 hover:border-primary/40 transition-colors cursor-pointer">
-                  <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
-                  <AvatarFallback className="bg-secondary"><User className="h-4 w-4" /></AvatarFallback>
+                  <AvatarFallback className="bg-secondary text-primary font-bold">
+                    {user.displayName.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
-                <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                <Button variant="ghost" size="sm" onClick={logout} className="text-xs font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                   <LogOut className="h-4 w-4 mr-2" /> Sign Out
                 </Button>
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                <Button variant="ghost" onClick={handleSignIn} className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
-                  Log In
-                </Button>
+                <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+                      Log In
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Academy Login</DialogTitle>
+                      <DialogDescription>
+                        Enter your student or staff credentials.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleLoginSubmit} className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Username</Label>
+                        <Input 
+                          id="username" 
+                          value={username} 
+                          onChange={(e) => setUsername(e.target.value)} 
+                          placeholder="e.g. adminHT" 
+                          required 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input 
+                          id="password" 
+                          type="password" 
+                          value={password} 
+                          onChange={(e) => setPassword(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <Button type="submit" className="w-full bg-primary text-primary-foreground">
+                        Sign In
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+
                 <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-6">
                   <Link href="/enroll">
                     <Zap className="h-4 w-4 mr-2 fill-current" /> Enroll Now
@@ -135,25 +200,13 @@ export function Navbar() {
           ))}
           <div className="pt-6 mt-4 border-t border-white/10 flex flex-col gap-4">
             {user ? (
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/30">
-                  <Avatar className="h-12 w-12 border-2 border-primary/20">
-                    <AvatarImage src={user.photoURL || ''} />
-                    <AvatarFallback><User /></AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <span className="font-bold">{user.displayName}</span>
-                    <span className="text-xs text-muted-foreground">{user.email}</span>
-                  </div>
-                </div>
-                <Button onClick={handleSignOut} variant="destructive" className="w-full h-14 font-bold text-lg rounded-xl">
-                  <LogOut className="h-5 w-5 mr-2" /> Sign Out
-                </Button>
-              </div>
+              <Button onClick={logout} variant="destructive" className="w-full h-14 font-bold text-lg rounded-xl">
+                <LogOut className="h-5 w-5 mr-2" /> Sign Out
+              </Button>
             ) : (
               <div className="flex flex-col gap-3">
-                <Button onClick={handleSignIn} variant="outline" className="w-full h-14 font-bold text-lg rounded-xl">
-                  <LogIn className="h-5 w-5 mr-2" /> Log In with Google
+                <Button onClick={() => setIsLoginOpen(true)} variant="outline" className="w-full h-14 font-bold text-lg rounded-xl">
+                  <LogIn className="h-5 w-5 mr-2" /> Log In
                 </Button>
                 <Button asChild className="w-full h-14 bg-primary text-primary-foreground font-bold text-lg rounded-xl shadow-lg shadow-primary/20">
                   <Link href="/enroll" onClick={() => setIsOpen(false)}>

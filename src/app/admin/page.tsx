@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { generateCourseContent, AdminCourseDescriptionOutput } from '@/ai/flows/admin-course-description-generator';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,18 +11,35 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Save, FileText, ListChecks, GraduationCap, Loader2, Wand2 } from 'lucide-react';
+import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   const { firestore } = useFirestore();
+  const { user, loading: userLoading } = useUser();
   const { toast } = useToast();
   const [keywords, setKeywords] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<AdminCourseDescriptionOutput | null>(null);
+
+  if (userLoading) return null;
+
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="container mx-auto px-4 py-32 text-center max-w-md">
+        <Lock className="h-16 w-16 text-muted-foreground opacity-20 mx-auto mb-6" />
+        <h1 className="text-3xl font-bold mb-4 font-headline tracking-tight">Access Restricted</h1>
+        <p className="text-muted-foreground mb-8">This portal is for authorized HardTech Staff only. Please log in with admin credentials.</p>
+        <Button asChild className="w-full h-12">
+          <Link href="/">Return to Home</Link>
+        </Button>
+      </div>
+    );
+  }
 
   const handleGenerate = async () => {
     if (!keywords) {

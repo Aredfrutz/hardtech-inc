@@ -4,8 +4,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useFirestore, useCollection, useDoc, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, addDoc, doc } from 'firebase/firestore';
+import { useFirestore, useCollection, useUser, useMemoFirebase } from '@/firebase';
+import { collection, query, addDoc } from 'firebase/firestore';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,6 @@ import { Clock, User, Search, Loader2, Info, Plus, ShieldCheck, CheckCircle, Cir
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { cn } from '@/lib/utils';
 
 export default function CourseCatalog() {
   const { firestore } = useFirestore();
@@ -25,23 +24,15 @@ export default function CourseCatalog() {
   const [search, setSearch] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
-  // Fetch courses
   const coursesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'courses'));
   }, [firestore]);
+  
   const { data: courses, loading: coursesLoading } = useCollection(coursesQuery);
 
-  // Fetch user profile for role-based access
-  const userProfileRef = useMemoFirebase(() => {
-    if (!firestore || !user?.uid) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user?.uid]);
-  const { data: userProfile } = useDoc(userProfileRef);
+  const isAdmin = user?.role === 'admin';
 
-  const isAdmin = userProfile?.role === 'admin';
-
-  // Filter courses by title only
   const filteredCourses = courses?.filter(c => 
     c.title?.toLowerCase().includes(search.toLowerCase())
   );
@@ -112,7 +103,6 @@ export default function CourseCatalog() {
         </p>
       </div>
 
-      {/* Admin Quick Add Section */}
       {isAdmin && (
         <Card className="mb-16 border-primary/20 bg-primary/5 backdrop-blur-sm overflow-hidden shadow-2xl shadow-primary/5">
           <CardHeader className="p-8 pb-4">
@@ -149,7 +139,6 @@ export default function CourseCatalog() {
         </Card>
       )}
 
-      {/* Search Bar */}
       <div className="relative w-full max-w-xl mx-auto mb-20 group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
