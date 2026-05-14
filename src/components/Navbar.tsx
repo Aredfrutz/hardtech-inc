@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Menu, X, LogIn, LogOut } from 'lucide-react';
+import { LogIn, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/firebase';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -21,15 +21,13 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
-  { name: 'Announcements', href: '/announcements' },
-  { name: 'Public Service Forum', href: '/forum' },
-  { name: 'Forms', href: '/forms' },
-  { name: 'Officials', href: '/officials' },
+  { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
+  { name: 'ANNOUNCEMENTS', href: '/announcements' },
+  { name: 'OFFICIAL LISTS', href: '/officials' },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -68,9 +66,9 @@ export function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden xl:flex items-center gap-6">
-          <div className="flex items-center gap-4">
+        {/* Desktop Menu - Always visible, no toggle */}
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -88,24 +86,28 @@ export function Navbar() {
             })}
           </div>
           
-          <div className="flex items-center gap-3 ml-2">
+          <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-8">
             {user ? (
               <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end mr-2">
+                  <span className="text-[9px] font-bold text-primary uppercase tracking-wider">{user.role}</span>
+                  <span className="text-[10px] text-white font-medium">{user.displayName}</span>
+                </div>
                 <Avatar className="h-8 w-8 border-2 border-primary/30">
                   <AvatarFallback className="bg-black text-primary font-bold text-xs uppercase">
                     {user.displayName.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <Button variant="ghost" size="sm" onClick={logout} className="text-[10px] font-bold text-muted-foreground uppercase hover:text-destructive p-0">
-                  <LogOut className="h-3.5 w-3.5 mr-1" /> Out
+                <Button variant="ghost" size="sm" onClick={logout} className="text-[10px] font-bold text-muted-foreground uppercase hover:text-destructive px-2">
+                  <LogOut className="h-3.5 w-3.5 mr-1" /> OUT
                 </Button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="ghost" className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest px-2">
-                      Log In
+                    <Button variant="ghost" className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest px-4 border border-white/10 hover:border-primary/50 h-9 rounded-none">
+                      LOG IN
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[400px] rounded-none border-primary bg-card">
@@ -142,44 +144,9 @@ export function Navbar() {
                 </Dialog>
               </div>
             )}
-
-            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-4 rounded-full text-[10px] uppercase tracking-widest h-9">
-              <Link href="/enroll">Enroll Now</Link>
-            </Button>
           </div>
         </div>
-
-        {/* Mobile Toggle */}
-        <button className="xl:hidden p-2 text-white" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
       </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="xl:hidden bg-black border-t border-primary/10 p-8 flex flex-col gap-6 animate-in slide-in-from-top-2">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setIsOpen(false)}
-              className="text-xs font-bold text-muted-foreground hover:text-primary uppercase py-2 tracking-widest"
-            >
-              {link.name}
-            </Link>
-          ))}
-          <div className="pt-6 mt-2 border-t border-white/5 flex flex-col gap-4">
-             {!user && (
-               <Button variant="outline" className="w-full border-primary/20 text-white uppercase font-bold text-[10px] h-12 rounded-full" onClick={() => setIsLoginOpen(true)}>
-                 Log In
-               </Button>
-             )}
-             <Button asChild className="w-full bg-primary text-primary-foreground font-bold uppercase text-[10px] h-12 rounded-full tracking-widest">
-                <Link href="/enroll" onClick={() => setIsOpen(false)}>Enroll Now</Link>
-             </Button>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
