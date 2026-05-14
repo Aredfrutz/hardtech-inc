@@ -85,17 +85,6 @@ export function Navbar() {
                 </Link>
               );
             })}
-            {user?.role === 'admin' && (
-              <Link
-                href="/admin"
-                className={cn(
-                  "text-sm font-medium transition-all hover:text-primary py-2",
-                  pathname === '/admin' ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                Admin Panel
-              </Link>
-            )}
           </div>
           
           <div className="flex items-center gap-6 border-l border-white/10 pl-8">

@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { 
   collection, 
   query, 
@@ -10,25 +9,43 @@ import {
   limit, 
   getDocs, 
   startAfter, 
+  addDoc,
+  serverTimestamp,
   DocumentData, 
   QueryDocumentSnapshot 
 } from 'firebase/firestore';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Info, AlertTriangle, CheckCircle2, Loader2, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar, Info, AlertTriangle, CheckCircle2, Loader2, ChevronDown, Megaphone, Send, ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const PAGE_SIZE = 10;
 
 export default function AnnouncementsPage() {
   const { firestore } = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+  
   const [announcements, setAnnouncements] = useState<DocumentData[]>([]);
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+
+  // Form State
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newBody, setNewBody] = useState('');
+  const [newPriority, setNewPriority] = useState('Low');
 
   const fetchAnnouncements = useCallback(async (isNextPage = false) => {
     if (!firestore) return;
@@ -78,7 +95,37 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     fetchAnnouncements();
-  }, [firestore]); // Only trigger on mount or if firestore instance changes
+  }, [firestore]);
+
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firestore || !newTitle.trim() || !newBody.trim()) return;
+
+    setIsPublishing(true);
+    const announcementData = {
+      title: newTitle,
+      body: newBody,
+      priority: newPriority,
+      timestamp: serverTimestamp()
+    };
+
+    addDoc(collection(firestore, 'announcements'), announcementData)
+      .then(() => {
+        toast({ title: "Broadcast Successful", description: "The announcement is now live." });
+        setNewTitle('');
+        setNewBody('');
+        setNewPriority('Low');
+        fetchAnnouncements(); // Refresh the list
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: 'announcements',
+          operation: 'create',
+          requestResourceData: announcementData
+        }));
+      })
+      .finally(() => setIsPublishing(false));
+  };
 
   const getPriorityStyles = (priority: string) => {
     switch (priority) {
@@ -96,6 +143,8 @@ export default function AnnouncementsPage() {
     }
   };
 
+  const isAdmin = user?.role === 'admin';
+
   return (
     <div className="container mx-auto px-4 py-16 max-w-4xl">
       <div className="text-center mb-16">
@@ -107,6 +156,65 @@ export default function AnnouncementsPage() {
         </p>
       </div>
 
+      {/* Admin Broadcast Console */}
+      {isAdmin && (
+        <Card className="mb-16 border-primary/20 bg-primary/5 backdrop-blur-sm overflow-hidden shadow-2xl shadow-primary/5">
+          <CardHeader className="p-8 pb-4">
+            <CardTitle className="flex items-center gap-2 text-xl font-headline">
+              <ShieldAlert className="h-6 w-6 text-primary" /> Staff Broadcast Command
+            </CardTitle>
+            <CardDescription>Publish official notices to the student body.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-8 pt-0">
+            <form onSubmit={handleCreateAnnouncement} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="ann-title">Announcement Title</Label>
+                  <Input 
+                    id="ann-title" 
+                    placeholder="e.g. System Maintenance Window" 
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    required 
+                    className="bg-background/50 h-12" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ann-priority">Priority Level</Label>
+                  <Select value={newPriority} onValueChange={setNewPriority}>
+                    <SelectTrigger className="bg-background/50 h-12">
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low Priority</SelectItem>
+                      <SelectItem value="Medium">Medium Priority</SelectItem>
+                      <SelectItem value="High">High Priority</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ann-body">Announcement Body</Label>
+                <Textarea 
+                  id="ann-body" 
+                  placeholder="Detailed description of the update..." 
+                  value={newBody}
+                  onChange={(e) => setNewBody(e.target.value)}
+                  required 
+                  className="bg-background/50 min-h-[100px]" 
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isPublishing} className="h-12 px-8 font-bold shadow-lg shadow-primary/20">
+                  {isPublishing ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Megaphone className="mr-2 h-5 w-5" />}
+                  Broadcast Update
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -114,7 +222,7 @@ export default function AnnouncementsPage() {
         </div>
       ) : announcements.length > 0 ? (
         <div className="relative space-y-12 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-          {announcements.map((announcement, index) => (
+          {announcements.map((announcement) => (
             <div key={announcement.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
               {/* Timeline dot */}
               <div className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-background shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 transition-colors group-hover:border-primary/50">
