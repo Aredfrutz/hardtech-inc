@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -13,7 +14,7 @@ export default function AnnouncementsPage() {
   
   const announcementsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'announcements'), orderBy('date', 'desc'));
+    return query(collection(firestore, 'announcements'), orderBy('timestamp', 'desc'));
   }, [firestore]);
 
   const { data: announcements, loading } = useCollection(announcementsQuery);
@@ -55,7 +56,7 @@ export default function AnnouncementsPage() {
                     </Badge>
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" />
-                      {announcement.date ? format(new Date(announcement.date), 'MMM d, yyyy') : 'No date'}
+                      {announcement.timestamp?.toDate ? format(announcement.timestamp.toDate(), 'MMM d, yyyy') : 'Recently'}
                     </span>
                   </div>
                   <CardTitle className="text-2xl font-headline">{announcement.title}</CardTitle>
@@ -63,7 +64,7 @@ export default function AnnouncementsPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                  {announcement.content}
+                  {announcement.body}
                 </p>
               </CardContent>
             </Card>

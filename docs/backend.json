@@ -8,12 +8,12 @@
       "properties": {
         "title": { "type": "string" },
         "description": { "type": "string" },
-        "category": { "type": "string" },
-        "level": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced", "Pro"] },
+        "instructor": { "type": "string" },
         "duration": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Draft", "Archived"] },
         "imageId": { "type": "string" }
       },
-      "required": ["title", "description", "category"]
+      "required": ["title", "description", "instructor", "status"]
     },
     "Announcement": {
       "title": "Official Announcement",
@@ -21,24 +21,35 @@
       "type": "object",
       "properties": {
         "title": { "type": "string" },
-        "content": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
+        "body": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
         "priority": { "type": "string", "enum": ["Low", "Medium", "High"] }
       },
-      "required": ["title", "content", "date"]
+      "required": ["title", "body", "timestamp"]
     },
-    "ForumPost": {
-      "title": "Forum Discussion",
-      "description": "User-generated discussion posts in the public service forum.",
+    "ForumThread": {
+      "title": "Forum Discussion Thread",
+      "description": "User-generated discussion threads in the public forum.",
       "type": "object",
       "properties": {
         "title": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "authorId", "authorName", "createdAt"]
+    },
+    "ForumReply": {
+      "title": "Forum Reply",
+      "description": "User responses within a forum thread.",
+      "type": "object",
+      "properties": {
         "content": { "type": "string" },
         "authorId": { "type": "string" },
         "authorName": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["title", "content", "authorId", "authorName"]
+      "required": ["content", "authorId", "authorName", "createdAt"]
     }
   },
   "auth": {
@@ -47,15 +58,19 @@
   "firestore": {
     "/courses/{courseId}": {
       "schema": "Course",
-      "description": "Collection of training courses."
+      "description": "Collection of official training courses."
     },
     "/announcements/{announcementId}": {
       "schema": "Announcement",
-      "description": "Collection of academy announcements."
+      "description": "Collection of administrative announcements."
     },
-    "/forum-posts/{postId}": {
-      "schema": "ForumPost",
-      "description": "Collection of public forum discussions."
+    "/forum_threads/{threadId}": {
+      "schema": "ForumThread",
+      "description": "Top-level forum discussion threads."
+    },
+    "/forum_threads/{threadId}/replies/{replyId}": {
+      "schema": "ForumReply",
+      "description": "Nested replies for a specific thread."
     }
   }
 }
