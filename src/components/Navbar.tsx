@@ -25,10 +25,11 @@ interface NavLink {
   href: string;
   hideForAdmin?: boolean;
   adminOnly?: boolean;
+  studentOnly?: boolean;
 }
 
 const navLinks: NavLink[] = [
-  { name: 'PROGRAMS', href: '/courses', hideForAdmin: true },
+  { name: 'PROGRAMS', href: '/courses', studentOnly: true },
   { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
   { name: 'OFFICIAL LISTS', href: '/officials' },
@@ -62,6 +63,7 @@ export function Navbar() {
 
   const visibleLinks = navLinks.filter(link => {
     if (link.adminOnly && user?.role !== 'admin') return false;
+    if (link.studentOnly && user?.role !== 'student') return false;
     if (link.hideForAdmin && user?.role === 'admin') return false;
     return true;
   });
