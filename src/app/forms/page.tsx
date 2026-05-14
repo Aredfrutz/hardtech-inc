@@ -2,7 +2,7 @@
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Download, Loader2, Info, Search, Send, FileCheck, ShieldCheck, Plus, Trash2, Edit2, Save, Database, Clock, CheckCircle, XCircle, ClipboardCheck } from 'lucide-react';
@@ -46,7 +46,6 @@ export default function FormsPage() {
   const { user } = useUser();
   const { toast } = useToast();
   const [search, setSearch] = useState('');
-  const [isSeeding, setIsSeeding] = useState(false);
 
   // Admin Add State
   const [isAdding, setIsAdding] = useState(false);
@@ -75,71 +74,9 @@ export default function FormsPage() {
     f.category?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSeedData = async () => {
-    if (!firestore || !isAdmin) return;
-    setIsSeeding(true);
-
-    try {
-      const batch = writeBatch(firestore);
-
-      // Seed 3 Standard Academy Forms
-      const formsToSeed = [
-        { 
-          title: 'Trainee Profile Form (TPF)', 
-          category: 'Registration', 
-          description: 'Official enrollment record for technical training programs.', 
-          fileUrl: '/forms/certificate-request' 
-        },
-        { 
-          title: 'Self-Assessment Guide (SAG)', 
-          category: 'Certification', 
-          description: 'Technical checklist for competency verification and skills mapping.', 
-          fileUrl: '/forms/certificate-request' 
-        },
-        { 
-          title: 'Transcript of Records Request', 
-          category: 'Administrative', 
-          description: 'Request for official academic performance and course completion logs.', 
-          fileUrl: '/forms/certificate-request' 
-        },
-      ];
-
-      formsToSeed.forEach(f => {
-        const ref = doc(collection(firestore, 'public_forms'));
-        batch.set(ref, f);
-      });
-
-      // Seed 10 Requests with diversified types
-      const courses = ['AI Engineering', 'Robotics Systems', 'Micro-Soldering', 'Cyber Security'];
-      const types = ['Completion', 'Competency', 'Excellence', 'Merit'];
-      const statuses = ['pending', 'approved', 'rejected'];
-      const names = ['Juan Tech', 'Maria Clara', 'Jose Rizal', 'Andres Bonifacio', 'Emilio Aguinaldo', 'Melchora Aquino', 'Gabriela Silang', 'Antonio Luna', 'Apolinario Mabini', 'Marcelo del Pilar'];
-
-      for (let i = 0; i < 10; i++) {
-        const ref = doc(collection(firestore, 'certificate_requests'));
-        batch.set(ref, {
-          userId: `mock-user-${i}`,
-          fullName: names[i],
-          courseName: courses[i % courses.length],
-          certificateType: types[i % types.length],
-          completionDate: '2023-10-12',
-          status: statuses[i % statuses.length],
-          requestedAt: serverTimestamp()
-        });
-      }
-
-      await batch.commit();
-      toast({ title: "Repository Seeded", description: "Standard forms and sample requests pushed to Firestore." });
-    } catch (error) {
-      toast({ title: "Seed Failed", variant: "destructive" });
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
   const handleAddForm = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firestore || !newTitle.trim()) return;
+    if (!firestore || !newTitle.trim() || !newTitle.trim()) return;
 
     setIsAdding(true);
     const formData = {
@@ -217,16 +154,6 @@ export default function FormsPage() {
                 </CardTitle>
                 <CardDescription>Manage document repository and service requests.</CardDescription>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSeedData} 
-                disabled={isSeeding}
-                className="border-primary/30 text-primary hover:bg-primary/10"
-              >
-                {isSeeding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Database className="h-4 w-4 mr-2" />}
-                Seed Repository
-              </Button>
             </CardHeader>
             <CardContent className="p-8 pt-0">
               <form onSubmit={handleAddForm} className="space-y-6">
