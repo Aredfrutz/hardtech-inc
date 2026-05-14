@@ -1,0 +1,61 @@
+
+{
+  "entities": {
+    "Course": {
+      "title": "Training Course",
+      "description": "A technical training course offered by HardTech Academy.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "level": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced", "Pro"] },
+        "duration": { "type": "string" },
+        "imageId": { "type": "string" }
+      },
+      "required": ["title", "description", "category"]
+    },
+    "Announcement": {
+      "title": "Official Announcement",
+      "description": "Administrative updates and news for the academy.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] }
+      },
+      "required": ["title", "content", "date"]
+    },
+    "ForumPost": {
+      "title": "Forum Discussion",
+      "description": "User-generated discussion posts in the public service forum.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "authorId", "authorName"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Collection of training courses."
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Collection of academy announcements."
+    },
+    "/forum-posts/{postId}": {
+      "schema": "ForumPost",
+      "description": "Collection of public forum discussions."
+    }
+  }
+}
