@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   DocumentData, 
 } from 'firebase/firestore';
+import { generateAnnouncementContent } from '@/ai/flows/announcement-generator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +23,9 @@ import {
   ShieldAlert, 
   Database, 
   Megaphone,
-  Plus
+  Plus,
+  Wand2,
+  Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +44,7 @@ export default function AnnouncementsPage() {
 
   // Form State
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newBody, setNewBody] = useState('');
   const [newPriority, setNewPriority] = useState('Low');
@@ -115,6 +119,30 @@ export default function AnnouncementsPage() {
         }));
       })
       .finally(() => setIsPublishing(false));
+  };
+
+  const handleAiGenerate = async () => {
+    if (!newTitle && !newBody) {
+      toast({ 
+        title: "Input Required", 
+        description: "Please provide a few keywords in the title or body to guide the AI.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const topic = newTitle || newBody;
+      const result = await generateAnnouncementContent({ topic });
+      setNewTitle(result.title);
+      setNewBody(result.body);
+      toast({ title: "Draft Generated", description: "AI has refined your announcement." });
+    } catch (error) {
+      toast({ title: "Generation Failed", variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSeedAnnouncements = async () => {
@@ -195,8 +223,25 @@ export default function AnnouncementsPage() {
           <form onSubmit={handleCreateAnnouncement} className="max-w-4xl mx-auto space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-2">
-                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Title</Label>
-                <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} required className="bg-black border-primary/20 h-10 rounded-none" />
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Title / Keywords</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={newTitle} 
+                    onChange={(e) => setNewTitle(e.target.value)} 
+                    required={!newBody}
+                    placeholder="e.g. Lab Maintenance Schedule"
+                    className="bg-black border-primary/20 h-10 rounded-none flex-grow" 
+                  />
+                  <Button 
+                    type="button" 
+                    onClick={handleAiGenerate} 
+                    disabled={isGenerating}
+                    variant="secondary"
+                    className="bg-primary/10 text-primary h-10 rounded-none border border-primary/30 px-3 hover:bg-primary/20"
+                  >
+                    {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Priority</Label>
@@ -213,8 +258,19 @@ export default function AnnouncementsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Body Content</Label>
-              <Textarea value={newBody} onChange={(e) => setNewBody(e.target.value)} required className="bg-black border-primary/20 min-h-[150px] rounded-none" />
+              <div className="flex justify-between items-center">
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Body Content</Label>
+                <span className="text-[8px] uppercase font-bold text-primary/50 tracking-tighter flex items-center gap-1">
+                  <Sparkles className="h-2 w-2" /> AI Draft Assistant Enabled
+                </span>
+              </div>
+              <Textarea 
+                value={newBody} 
+                onChange={(e) => setNewBody(e.target.value)} 
+                required 
+                placeholder="Draft the announcement details or let AI generate from keywords..."
+                className="bg-black border-primary/20 min-h-[150px] rounded-none" 
+              />
             </div>
             <div className="flex justify-end">
               <Button type="submit" disabled={isPublishing} className="bg-primary text-black rounded-none font-bold uppercase text-[10px] px-8 h-10">

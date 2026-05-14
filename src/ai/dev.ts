@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/admin-course-description-generator.ts';
 import '@/ai/flows/forum-summarizer.ts';
+import '@/ai/flows/announcement-generator.ts';
