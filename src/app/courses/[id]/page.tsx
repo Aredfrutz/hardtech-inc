@@ -45,6 +45,12 @@ export default function CourseDetailPage() {
   const { data: instructors } = useCollection(instructorsQuery);
   const filteredInstructors = instructors?.filter(i => course?.instructorIds?.includes(i.id));
 
+  const getImageUrl = (imageId: string) => {
+    if (imageId?.startsWith('http')) return imageId;
+    const found = PlaceHolderImages.find(img => img.id === imageId);
+    return found ? found.imageUrl : PlaceHolderImages[0].imageUrl;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -64,7 +70,7 @@ export default function CourseDetailPage() {
     );
   }
 
-  const image = PlaceHolderImages.find(img => img.id === course.imageId) || PlaceHolderImages[0];
+  const courseImageUrl = getImageUrl(course.imageId);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -230,7 +236,7 @@ export default function CourseDetailPage() {
             <div className="rounded-none border-2 border-primary/20 bg-card overflow-hidden shadow-2xl shadow-primary/5">
               <div className="relative h-64 w-full group overflow-hidden">
                 <Image 
-                  src={image.imageUrl} 
+                  src={courseImageUrl} 
                   alt={course.title} 
                   fill 
                   className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" 

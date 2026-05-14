@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Image as ImageIcon, Check } from 'lucide-react';
+import { Sparkles, Save, FileText, ListChecks, Loader2, Wand2, Lock, HelpCircle, Users, Target, Wrench, CreditCard, Database, Plus, Trash2, Image as ImageIcon, Check, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -356,6 +356,12 @@ export default function AdminDashboard() {
     setCourseData({ ...courseData, selectedInstructorIds: updated });
   };
 
+  const getPreviewImageUrl = (id: string) => {
+    if (id?.startsWith('http')) return id;
+    const found = PlaceHolderImages.find(img => img.id === id);
+    return found ? found.imageUrl : PlaceHolderImages[0].imageUrl;
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-12 flex justify-between items-start">
@@ -606,7 +612,7 @@ export default function AdminDashboard() {
                   <TabsContent value="imagery" className="mt-0 space-y-8">
                     <div className="space-y-4">
                       <Label className="text-[10px] uppercase font-bold text-primary tracking-widest">Protocol: Program Imagery Selection</Label>
-                      <p className="text-[10px] text-muted-foreground uppercase">Select a high-fidelity visual or provide a custom reference.</p>
+                      <p className="text-[10px] text-muted-foreground uppercase">Select a high-fidelity visual or provide a custom high-fidelity URL.</p>
                       
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {PlaceHolderImages.map((img) => (
@@ -629,9 +635,11 @@ export default function AdminDashboard() {
                       </div>
                       
                       <div className="pt-6 border-t border-white/5 space-y-2">
-                        <Label className="text-[10px] uppercase font-bold opacity-50">Custom Imagery Ref (Optional)</Label>
+                        <Label className="text-[10px] uppercase font-bold opacity-50 flex items-center gap-2">
+                          <Globe className="h-3 w-3" /> Custom Imagery URL (Optional)
+                        </Label>
                         <Input 
-                          placeholder="Image ID or URL" 
+                          placeholder="https://example.com/image.jpg" 
                           value={courseData.selectedImageId || ''}
                           onChange={(e) => setCourseData({...courseData, selectedImageId: e.target.value})}
                           className="bg-secondary/20 h-10 rounded-none border-white/10 text-xs"
@@ -649,6 +657,12 @@ export default function AdminDashboard() {
                     <p className="text-8px uppercase font-bold text-muted-foreground mb-1">Total Fee</p>
                     <p className="text-lg font-bold">₱ {((courseData.tuition || 0) + (courseData.materials || 0)).toLocaleString()}</p>
                   </div>
+                  {courseData.selectedImageId && courseData.selectedImageId.startsWith('http') && (
+                    <div className="ml-4 flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20">
+                      <ImageIcon className="h-3 w-3 text-primary" />
+                      <span className="text-[8px] font-bold uppercase text-primary">External Asset Active</span>
+                    </div>
+                  )}
                </div>
                <Button 
                 onClick={handlePublish} 

@@ -55,6 +55,12 @@ export default function CourseCatalog() {
     c.title?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const getImageUrl = (imageId: string) => {
+    if (imageId?.startsWith('http')) return imageId;
+    const found = PlaceHolderImages.find(img => img.id === imageId);
+    return found ? found.imageUrl : PlaceHolderImages[0].imageUrl;
+  };
+
   const handleQuickAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!firestore) return;
@@ -167,7 +173,7 @@ export default function CourseCatalog() {
       ) : filteredCourses && filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {filteredCourses.map((course: any) => {
-            const image = PlaceHolderImages.find(img => img.id === course.imageId) || PlaceHolderImages[0];
+            const courseImageUrl = getImageUrl(course.imageId);
             const instructorName = course.instructorIds?.[0] && instructorMap[course.instructorIds[0]] 
               ? instructorMap[course.instructorIds[0]] 
               : 'STAFF FACULTY';
@@ -176,11 +182,10 @@ export default function CourseCatalog() {
               <Card key={course.id} className="group relative flex flex-col bg-card/40 border-white/5 overflow-hidden backdrop-blur-xl transition-all duration-500 hover:border-primary/30 rounded-none">
                 <div className="relative h-56 w-full overflow-hidden">
                   <Image 
-                    src={image.imageUrl} 
+                    src={courseImageUrl} 
                     alt={course.title} 
                     fill 
                     className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
-                    data-ai-hint={image.imageHint}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
                   <div className="absolute top-4 right-4 z-10">
