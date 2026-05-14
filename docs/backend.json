@@ -7,11 +7,25 @@
       "type": "object",
       "properties": {
         "title": { "type": "string" },
+        "summary": { "type": "string", "description": "A professional 3-sentence summary of the course." },
         "description": { "type": "string" },
         "instructor": { "type": "string" },
         "duration": { "type": "string" },
         "status": { "type": "string", "enum": ["Active", "Draft", "Archived"] },
-        "imageId": { "type": "string" }
+        "imageId": { "type": "string" },
+        "outline": { "type": "array", "items": { "type": "string" } },
+        "learningOutcomes": { "type": "array", "items": { "type": "string" } },
+        "targetAudience": { "type": "array", "items": { "type": "string" } },
+        "faqs": { 
+          "type": "array", 
+          "items": { 
+            "type": "object", 
+            "properties": {
+              "question": { "type": "string" },
+              "answer": { "type": "string" }
+            }
+          } 
+        }
       },
       "required": ["title", "description", "instructor", "status"]
     },
