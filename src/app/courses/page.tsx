@@ -12,10 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Clock, User, Search, Loader2, Info, Plus, ShieldCheck } from 'lucide-react';
+import { Clock, User, Search, Loader2, Info, Plus, ShieldCheck, CheckCircle, CircleDashed, Archive } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { cn } from '@/lib/utils';
 
 export default function CourseCatalog() {
   const { firestore } = useFirestore();
@@ -75,43 +76,72 @@ export default function CourseCatalog() {
       .finally(() => setIsAdding(false));
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return (
+          <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Active
+          </Badge>
+        );
+      case 'Draft':
+        return (
+          <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 flex items-center gap-1">
+            <CircleDashed className="h-3 w-3" /> Draft
+          </Badge>
+        );
+      case 'Archived':
+        return (
+          <Badge className="bg-slate-500/10 text-slate-500 border-slate-500/20 flex items-center gap-1">
+            <Archive className="h-3 w-3" /> Archived
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="text-center mb-16 max-w-2xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6 font-headline">Official <span className="text-primary">Training List</span></h1>
-        <p className="text-muted-foreground">Master elite technical skills through our industry-accredited curriculum.</p>
+    <div className="container mx-auto px-4 py-20 font-sans">
+      <div className="text-center mb-20 max-w-3xl mx-auto">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 font-headline tracking-tight">
+          Official <span className="text-primary">Training Catalog</span>
+        </h1>
+        <p className="text-muted-foreground text-lg leading-relaxed">
+          Explore our high-performance curriculum designed for the next generation of technical leaders.
+        </p>
       </div>
 
       {/* Admin Quick Add Section */}
       {isAdmin && (
-        <Card className="mb-12 border-primary/30 bg-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <ShieldCheck className="h-5 w-5 text-primary" /> Admin Control: Add New Course
+        <Card className="mb-16 border-primary/20 bg-primary/5 backdrop-blur-sm overflow-hidden shadow-2xl shadow-primary/5">
+          <CardHeader className="p-8 pb-4">
+            <CardTitle className="flex items-center gap-2 text-xl font-headline">
+              <ShieldCheck className="h-6 w-6 text-primary" /> Administrative Controls
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleQuickAdd} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <CardContent className="p-8 pt-0">
+            <form onSubmit={handleQuickAdd} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
               <div className="space-y-2">
-                <Label htmlFor="title">Course Title</Label>
-                <Input id="title" name="title" placeholder="e.g. Advanced Rust" required className="bg-background" />
+                <Label htmlFor="title" className="text-xs uppercase tracking-wider font-bold opacity-70">Course Title</Label>
+                <Input id="title" name="title" placeholder="Advanced Systems" required className="bg-background/50 h-12" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="instructor">Instructor</Label>
-                <Input id="instructor" name="instructor" placeholder="Dr. Smith" required className="bg-background" />
+                <Label htmlFor="instructor" className="text-xs uppercase tracking-wider font-bold opacity-70">Instructor</Label>
+                <Input id="instructor" name="instructor" placeholder="Lead Engineer" required className="bg-background/50 h-12" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration</Label>
-                <Input id="duration" name="duration" placeholder="6 Weeks" required className="bg-background" />
+                <Label htmlFor="duration" className="text-xs uppercase tracking-wider font-bold opacity-70">Duration</Label>
+                <Input id="duration" name="duration" placeholder="12 Weeks" required className="bg-background/50 h-12" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Short Description</Label>
-                <Input id="description" name="description" placeholder="Brief overview..." required className="bg-background" />
+                <Label htmlFor="description" className="text-xs uppercase tracking-wider font-bold opacity-70">Description</Label>
+                <Input id="description" name="description" placeholder="Brief syllabus..." required className="bg-background/50 h-12" />
               </div>
-              <div className="md:col-span-4 flex justify-end">
-                <Button type="submit" disabled={isAdding}>
-                  {isAdding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-                  Register Course
+              <div className="md:col-span-4 flex justify-end pt-4">
+                <Button type="submit" disabled={isAdding} className="h-12 px-8 font-bold shadow-lg shadow-primary/20">
+                  {isAdding ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Plus className="mr-2 h-5 w-5" />}
+                  Register New Program
                 </Button>
               </div>
             </form>
@@ -120,57 +150,73 @@ export default function CourseCatalog() {
       )}
 
       {/* Search Bar */}
-      <div className="relative w-full max-w-md mx-auto mb-12">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="relative w-full max-w-xl mx-auto mb-20 group">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Filter by title..." 
-          className="pl-10 bg-secondary/30 h-12 rounded-full" 
+          placeholder="Search by technical domain or title..." 
+          className="pl-12 bg-secondary/20 border-white/5 h-14 rounded-2xl text-lg focus:ring-primary/50 transition-all shadow-inner" 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
       {coursesLoading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center justify-center py-32 gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse font-medium">Synchronizing with course registry...</p>
         </div>
       ) : filteredCourses && filteredCourses.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {filteredCourses.map((course: any) => {
             const image = PlaceHolderImages.find(img => img.id === course.imageId) || PlaceHolderImages[0];
             return (
-              <Card key={course.id} className="flex flex-col bg-card/60 border-white/5 overflow-hidden backdrop-blur-sm group hover:border-primary/20 transition-all">
-                <div className="relative h-48 w-full">
+              <Card key={course.id} className="group relative flex flex-col bg-card/40 border-white/5 overflow-hidden backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/20">
+                <div className="relative h-56 w-full overflow-hidden">
                   <Image 
                     src={image.imageUrl} 
                     alt={course.title} 
                     fill 
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                     data-ai-hint={image.imageHint}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
+                  <div className="absolute top-4 right-4 z-10">
+                    {getStatusBadge(course.status)}
+                  </div>
                 </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl font-headline group-hover:text-primary transition-colors line-clamp-1">{course.title}</CardTitle>
+                
+                <CardHeader className="p-8 pb-3">
+                  <CardTitle className="text-2xl font-headline group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                    {course.title}
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-grow space-y-4">
-                  <p className="text-muted-foreground text-sm line-clamp-3 h-15">
+                
+                <CardContent className="p-8 pt-0 flex-grow space-y-6">
+                  <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">
                     {course.description}
                   </p>
-                  <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <User className="h-3.5 w-3.5 text-primary" />
-                      <span className="font-medium text-foreground">{course.instructor}</span>
+                  
+                  <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">Instructor</span>
+                      <div className="flex items-center gap-2 text-xs font-medium">
+                        <User className="h-3.5 w-3.5 text-primary" />
+                        <span className="truncate">{course.instructor}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5 text-primary" />
-                      <span>{course.duration}</span>
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase tracking-widest font-bold opacity-40">Duration</span>
+                      <div className="flex items-center gap-2 text-xs font-medium">
+                        <Clock className="h-3.5 w-3.5 text-primary" />
+                        <span>{course.duration}</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-0">
-                  <Button asChild variant="ghost" className="w-full text-primary hover:text-primary hover:bg-primary/10">
-                    <Link href={`/courses/${course.id}`}>View Syllabus</Link>
+                
+                <CardFooter className="p-8 pt-0">
+                  <Button asChild variant="secondary" className="w-full h-12 font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                    <Link href={`/courses/${course.id}`}>Explore Syllabus</Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -178,10 +224,10 @@ export default function CourseCatalog() {
           })}
         </div>
       ) : (
-        <div className="text-center py-20 border-2 border-dashed rounded-3xl bg-secondary/10">
-          <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-          <h3 className="text-xl font-bold mb-2">No matches found</h3>
-          <p className="text-muted-foreground">Try searching for a different course title.</p>
+        <div className="text-center py-32 border-2 border-dashed rounded-[2rem] bg-secondary/5 border-white/5">
+          <Info className="h-16 w-16 text-muted-foreground mx-auto mb-6 opacity-10" />
+          <h3 className="text-2xl font-bold mb-2">No matching curricula</h3>
+          <p className="text-muted-foreground max-w-sm mx-auto">Our catalog is constantly expanding. Try a different search term or check back soon.</p>
         </div>
       )}
     </div>
