@@ -21,13 +21,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Info, AlertTriangle, CheckCircle2, Loader2, ChevronDown, Megaphone, Send, ShieldAlert, Database, Sparkles, Lock } from 'lucide-react';
+import { Calendar, Info, AlertTriangle, CheckCircle2, Loader2, ChevronDown, Megaphone, Send, ShieldAlert, Database } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import Link from 'next/link';
 
 const PAGE_SIZE = 10;
 
@@ -96,10 +95,10 @@ export default function AnnouncementsPage() {
   }, [firestore, lastDoc]);
 
   useEffect(() => {
-    if (user) {
+    if (firestore) {
       fetchAnnouncements();
     }
-  }, [firestore, user, fetchAnnouncements]);
+  }, [firestore, fetchAnnouncements]);
 
   const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,22 +187,7 @@ export default function AnnouncementsPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse font-bold uppercase text-[10px] tracking-widest">Authenticating Session...</p>
-      </div>
-    );
-  }
-
-  if (!user || (user.role !== 'student' && user.role !== 'admin')) {
-    return (
-      <div className="container mx-auto px-4 py-32 text-center max-w-md">
-        <Lock className="h-16 w-16 text-muted-foreground opacity-20 mx-auto mb-6" />
-        <h1 className="text-3xl font-bold mb-4 font-headline tracking-tight uppercase">Access Restricted</h1>
-        <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
-          Academy Announcements are broadcasted on a secure channel. Please log in with a valid student or staff account to access this terminal.
-        </p>
-        <Button asChild className="w-full h-12 rounded-none bg-primary text-primary-foreground font-bold uppercase tracking-widest text-xs">
-          <Link href="/">Return to Home</Link>
-        </Button>
+        <p className="text-muted-foreground animate-pulse font-bold uppercase text-[10px] tracking-widest">Initialising Terminal...</p>
       </div>
     );
   }
