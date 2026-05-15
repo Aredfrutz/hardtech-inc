@@ -16,7 +16,8 @@ import {
   CheckCircle2, 
   Clock, 
   Microscope,
-  Award
+  Award,
+  BookOpen
 } from 'lucide-react';
 import Link from 'next/link';
 
