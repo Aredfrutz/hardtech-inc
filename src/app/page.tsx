@@ -3,13 +3,10 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Calendar, Zap, Users, Code, FileText } from 'lucide-react';
+import { Calendar, Zap, Users, Code, FileText } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
-  const eventImage = PlaceHolderImages.find(img => img.id === 'event-1');
-  const newsImage = PlaceHolderImages.find(img => img.id === 'news-1');
-
   const newsItems = [
     {
       title: "New State-of-the-Art Micro-Soldering Lab Opens",
@@ -68,9 +65,6 @@ export default function Home() {
               HardTech Information Technology provides actual advanced board-level training and hardware troubleshooting education for professional technicians.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-white text-black hover:bg-primary hover:text-black h-14 px-8 rounded-none uppercase font-bold text-xs tracking-widest transition-all shadow-xl" asChild>
-                <Link href="/courses">Explore Programs <ArrowRight className="ml-2 h-4 w-4" /></Link>
-              </Button>
               <Button size="lg" className="bg-primary text-black hover:bg-white hover:text-black h-14 px-8 rounded-none uppercase font-bold text-xs tracking-widest transition-all shadow-lg border-2 border-primary" asChild>
                 <Link href="/forms">
                   Download & Submit Forms <FileText className="ml-2 h-4 w-4" />
