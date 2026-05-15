@@ -28,7 +28,12 @@ export function FirebaseClientProvider({
   }
 
   return (
-    <FirebaseProvider app={services.app} firestore={services.firestore} auth={services.auth}>
+    <FirebaseProvider 
+      app={services.app} 
+      firestore={services.firestore} 
+      auth={services.auth}
+      storage={services.storage}
+    >
       {children}
     </FirebaseProvider>
   );

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,13 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { 
   Database, 
   Loader2, 
-  CheckCircle2, 
-  AlertCircle, 
   Upload, 
   Image as ImageIcon,
-  FileText,
   LayoutGrid,
-  X
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -27,8 +25,7 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogDescription,
-  DialogTrigger,
-  DialogFooter
+  DialogTrigger
 } from '@/components/ui/dialog';
 import Image from 'next/image';
 
@@ -40,7 +37,7 @@ interface DraftCourse {
   durationHours: number;
   ncLevel: string;
   status: 'Active' | 'Upcoming';
-  imageId: string; // This will store the URL
+  imageId: string;
   instructorIds: string[];
   prerequisites: string[];
   requiredTools: string[];
@@ -286,7 +283,10 @@ export function SeedData() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleFileUpload = async (draftId: string, file: File) => {
-    if (!storage) return;
+    if (!storage) {
+      toast({ title: "Storage Offline", description: "Firebase Storage is not initialized.", variant: "destructive" });
+      return;
+    }
 
     setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, isUploading: true } : d));
 
@@ -301,9 +301,9 @@ export function SeedData() {
       
       toast({ title: "Media Attached", description: `Image processed for draft ID ${draftId}` });
     } catch (error) {
-      console.error(error);
+      console.error("Upload error:", error);
       setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, isUploading: false } : d));
-      toast({ title: "Upload Failed", variant: "destructive" });
+      toast({ title: "Upload Failed", description: "Could not upload image to storage.", variant: "destructive" });
     }
   };
 
@@ -328,6 +328,7 @@ export function SeedData() {
       toast({ title: "Database Synchronized", description: "10 Curricula successfully drafted to official registry." });
       setIsPreviewOpen(false);
     } catch (error) {
+      console.error("Seeding error:", error);
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: 'courses_batch',
         operation: 'create',
@@ -339,6 +340,7 @@ export function SeedData() {
   };
 
   const allImagesUploaded = drafts.every(d => d.imageId !== '');
+  const missingCount = drafts.filter(d => d.imageId === '').length;
 
   return (
     <Card className="bg-primary/5 border-primary/30 rounded-none shadow-xl overflow-hidden">
@@ -362,19 +364,25 @@ export function SeedData() {
               <LayoutGrid className="mr-2 h-4 w-4" /> Open Draft Workspace
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-[90vw] h-[90vh] bg-card border-primary/20 flex flex-col p-0 rounded-none">
+          <DialogContent className="max-w-[90vw] h-[90vh] bg-card border-primary/20 flex flex-col p-0 rounded-none overflow-hidden">
             <DialogHeader className="p-8 border-b bg-secondary/20">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                 <div>
                   <DialogTitle className="text-3xl font-black uppercase tracking-tighter">Draft Curricula <span className="text-primary">Workspace</span></DialogTitle>
-                  <DialogDescription className="text-[10px] uppercase font-bold tracking-widest mt-2">
-                    Attach imagery to all 10 programs before syncing with Firestore.
-                  </DialogDescription>
+                  <p className="text-[10px] uppercase font-bold tracking-widest mt-2 flex items-center gap-2">
+                    {allImagesUploaded ? (
+                      <span className="text-primary">READY: All 10 media parts attached.</span>
+                    ) : (
+                      <span className="text-amber-500 flex items-center gap-2">
+                        <AlertCircle className="h-3 w-3" /> PENDING: {missingCount} programs missing imagery.
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <Button 
                   onClick={handleSeedDatabase} 
                   disabled={isSeeding || !allImagesUploaded}
-                  className="bg-primary text-black font-black uppercase text-xs h-14 px-12 rounded-none tracking-widest disabled:opacity-30"
+                  className="bg-primary text-black font-black uppercase text-xs h-14 px-12 rounded-none tracking-widest disabled:opacity-30 w-full md:w-auto"
                 >
                   {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
                   Execute Final Batch Seed
