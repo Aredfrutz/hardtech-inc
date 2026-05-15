@@ -1,7 +1,7 @@
-
 "use client"
 
 import Link from 'next/link';
+import Image from 'next/image'; // Added this import
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -71,12 +71,16 @@ export function Navbar() {
   return (
     <nav className="w-full bg-[#0a0a0a]/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50">
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+        
+        {/* Updated Logo Section */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center border-2 border-primary overflow-hidden">
-             <div className="w-8 h-8 bg-black rounded-full border border-primary flex items-center justify-center">
-                <div className="w-1 h-1 bg-primary rounded-full animate-ping" />
-             </div>
-          </div>
+          <Image 
+            src="/logo.jpg" 
+            alt="HardTech Logo" 
+            width={40} 
+            height={40} 
+            className="rounded-full border-2 border-primary object-cover h-10 w-10" 
+          />
           <div className="flex flex-col">
             <span className="font-bold text-sm tracking-widest text-white leading-none">HARDTECH</span>
             <span className="text-[9px] font-medium tracking-tighter text-muted-foreground uppercase">Information Technology</span>
