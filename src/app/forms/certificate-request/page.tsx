@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -23,20 +23,27 @@ export default function CertificateRequestPage() {
   const [submitted, setSubmitted] = useState(false);
   
   // Form State
-  const [fullName, setFullName] = useState(user?.displayName || '');
+  const [fullName, setFullName] = useState('');
   const [courseName, setCourseName] = useState('');
   const [completionDate, setCompletionDate] = useState('');
 
+  // Sync full name with user display name if available
+  useEffect(() => {
+    if (user?.displayName && !fullName) {
+      setFullName(user.displayName);
+    }
+  }, [user, fullName]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firestore || !user) {
-      toast({ title: "Unauthorized", description: "Please log in to submit requests.", variant: "destructive" });
+    if (!firestore) {
+      toast({ title: "System Offline", description: "Database connection failed.", variant: "destructive" });
       return;
     }
 
     setIsSubmitting(true);
     const requestData = {
-      userId: user.uid,
+      userId: user?.uid || 'guest-access',
       fullName: fullName,
       courseName: courseName,
       completionDate: completionDate,
@@ -60,19 +67,6 @@ export default function CertificateRequestPage() {
   };
 
   if (userLoading) return null;
-
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-32 text-center max-w-md">
-        <ShieldCheck className="h-16 w-16 text-muted-foreground opacity-20 mx-auto mb-6" />
-        <h1 className="text-3xl font-bold mb-4 font-headline tracking-tight">Authentication Required</h1>
-        <p className="text-muted-foreground mb-8">Digital service requests are exclusive to Academy members. Please log in to proceed.</p>
-        <Button asChild className="w-full h-12">
-          <Link href="/">Return Home</Link>
-        </Button>
-      </div>
-    );
-  }
 
   if (submitted) {
     return (
@@ -107,7 +101,7 @@ export default function CertificateRequestPage() {
 
       <div className="mb-12">
         <h1 className="text-4xl font-bold font-headline mb-4 uppercase tracking-tight">Request <span className="text-primary">Certificate</span></h1>
-        <p className="text-muted-foreground">Submit a formal digital request for your technical certification.</p>
+        <p className="text-muted-foreground">Submit a formal digital request for your technical certification. Public submission enabled.</p>
       </div>
 
       <Card className="bg-card border-primary/20 shadow-2xl overflow-hidden">
@@ -117,7 +111,7 @@ export default function CertificateRequestPage() {
         </div>
         <CardHeader className="p-8">
           <CardTitle className="text-2xl font-headline">Verification Details</CardTitle>
-          <CardDescription>Ensure all information matches your registration records for faster processing.</CardDescription>
+          <CardDescription>Ensure all information matches your records for faster processing. Guest submissions are welcome.</CardDescription>
         </CardHeader>
         <CardContent className="p-8 pt-0">
           <form onSubmit={handleSubmit} className="space-y-6">
