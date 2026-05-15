@@ -7,6 +7,7 @@ import { ArrowRight, Calendar, Zap, Users, Code, Target, Compass } from 'lucide-
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
+  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-bg');
   const eventImage = PlaceHolderImages.find(img => img.id === 'event-1');
   const newsImage = PlaceHolderImages.find(img => img.id === 'news-1');
 
@@ -45,14 +46,17 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
+          {heroImage && (
             <Image
-              src="/BGhomepage.png"
-              alt="HardTech Academy Background"
+              src={heroImage.imageUrl}
+              alt={heroImage.description}
               fill
-              className="object-cover opacity-30 grayscale hover:grayscale-0 transition-all duration-1000"
+              className="object-cover opacity-50 transition-all duration-1000"
               priority
+              data-ai-hint={heroImage.imageHint}
             />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
@@ -64,7 +68,7 @@ export default function Home() {
               Master the <span className="text-gradient">Hard Skills</span> of the Future.
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed uppercase text-[10px] font-bold tracking-[0.2em] opacity-80">
-              HardTech Inc provides elite technical training for developers, engineers, and tech enthusiasts ready to build what's next.
+            HardTech Information Technology provides actual advanced board-level training and hardware troubleshooting education for professional technicians.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-white hover:text-black h-14 px-8 rounded-none uppercase font-bold text-xs tracking-widest transition-all" asChild>
@@ -162,6 +166,7 @@ export default function Home() {
                           alt={item.title} 
                           fill 
                           className="object-cover transition-transform duration-700 group-hover:scale-105"
+                          data-ai-hint={newsImage.imageHint}
                         />
                       </div>
                     )}
@@ -202,7 +207,7 @@ export default function Home() {
               </div>
               <div className="relative h-72 w-full rounded-none overflow-hidden group border border-white/10">
                 {eventImage && (
-                  <Image src={eventImage.imageUrl} alt="Event Background" fill className="object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-110" />
+                  <Image src={eventImage.imageUrl} alt="Event Background" fill className="object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-110" data-ai-hint={eventImage.imageHint} />
                 )}
                 <div className="absolute inset-0 bg-primary/10 mix-blend-multiply" />
                 <div className="absolute inset-0 flex flex-col justify-end p-8 bg-gradient-to-t from-background via-background/40 to-transparent">
