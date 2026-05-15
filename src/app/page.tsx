@@ -3,26 +3,25 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Calendar, Zap, Users, Code, Target, Compass } from 'lucide-react';
+import { ArrowRight, Calendar, Zap, Users, Code, FileText } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
-  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-bg');
   const eventImage = PlaceHolderImages.find(img => img.id === 'event-1');
   const newsImage = PlaceHolderImages.find(img => img.id === 'news-1');
 
   const newsItems = [
     {
-      title: "HardTech Academy Expands AI Lab",
-      date: "Oct 12, 2023",
+      title: "New State-of-the-Art Micro-Soldering Lab Opens",
+      date: "Oct 12, 2025",
       category: "News",
-      description: "We are excited to announce a 5,000 sq ft expansion to our specialized robotics and AI lab facilities."
+      description: "We are excited to announce the expansion of our training center, featuring new high-end microscopes and specialized soldering stations."
     },
     {
-      title: "New Partnership with Global Tech",
-      date: "Oct 05, 2023",
+      title: "Partnership with Major Repair Networks",
+      date: "Oct 05, 2025",
       category: "Announcement",
-      description: "Students will now have direct access to internships and mentorship programs through our new industry partners."
+      description: "Graduates will now have direct access to job placement programs and advanced certification tracks through our new industry partners."
     }
   ];
 
@@ -34,7 +33,7 @@ export default function Home() {
       type: "Open For Reservation"
     },
     {
-      title: "Advanace Board-Level Specialist Training",
+      title: "Advanced Board-Level Specialist Training",
       date: "May 25, 2026",
       location: "Zamboanga City",
       type: "Limited Slot Only"
@@ -46,16 +45,14 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          {heroImage && (
-            <Image
-              src={heroImage.imageUrl}
-              alt={heroImage.description}
-              fill
-              className="object-cover opacity-50 transition-all duration-1000"
-              priority
-              data-ai-hint={heroImage.imageHint}
-            />
-          )}
+          <Image
+            src="https://picsum.photos/seed/hardtech-hero/1200/800" 
+            alt="HardTech Background"
+            fill
+            className="object-cover opacity-40 transition-all duration-1000"
+            priority
+            data-ai-hint="electronics lab"
+          />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
         </div>
         
@@ -68,14 +65,16 @@ export default function Home() {
               Master the <span className="text-gradient">Hard Skills</span> of the Future.
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed uppercase text-[10px] font-bold tracking-[0.2em] opacity-80">
-            HardTech Information Technology provides actual advanced board-level training and hardware troubleshooting education for professional technicians.
+              HardTech Information Technology provides actual advanced board-level training and hardware troubleshooting education for professional technicians.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-white hover:text-black h-14 px-8 rounded-none uppercase font-bold text-xs tracking-widest transition-all" asChild>
+              <Button size="lg" className="bg-white text-black hover:bg-primary hover:text-black h-14 px-8 rounded-none uppercase font-bold text-xs tracking-widest transition-all shadow-xl" asChild>
                 <Link href="/courses">Explore Programs <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-accent text-accent hover:bg-accent hover:text-accent-foreground h-14 px-8 rounded-none uppercase font-bold text-xs tracking-widest transition-all" asChild>
-                <Link href="/enroll">Quick Enroll</Link>
+              <Button size="lg" className="bg-primary text-black hover:bg-white hover:text-black h-14 px-8 rounded-none uppercase font-bold text-xs tracking-widest transition-all shadow-lg border-2 border-primary" asChild>
+                <Link href="/forms">
+                  Download & Submit Forms <FileText className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
             </div>
           </div>
@@ -83,31 +82,47 @@ export default function Home() {
       </section>
 
       {/* Mission & Vision Section */}
-      <section className="py-24 bg-secondary/10 border-y border-white/5">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-            <div className="space-y-6 animate-in fade-in slide-in-from-left-8 duration-700">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="h-12 w-12 bg-primary/10 flex items-center justify-center border border-primary/20">
-                  <Target className="h-6 w-6 text-primary" />
+      <section className="py-24 bg-[#0a0a0a] border-y border-white/5">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="mb-16 max-w-4xl">
+            <h3 className="text-xl font-bold uppercase text-white mb-6 tracking-widest">About Hardtech Information Technology</h3>
+            <p className="text-primary text-sm md:text-base font-medium leading-relaxed">
+              Hardtech Information Technology Corporation is a SEC-registered training institution dedicated to developing skilled and competent technicians in the field of electronics and IT. We specialize in providing actual, hands-on advanced board-level training, equipping our students with real-world skills that go beyond basic theory.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div className="space-y-12">
+              <div className="flex gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <div className="w-1.5 bg-white min-h-[120px] rounded-full shrink-0"></div>
+                <div className="pt-1">
+                  <h2 className="text-2xl font-black uppercase tracking-widest text-white mb-4">Mission</h2>
+                  <p className="text-muted-foreground text-sm leading-relaxed font-medium">
+                    To provide comprehensive, hands-on, and direct-to-the-point training that equips students with advanced diagnostics, microsoldering, and troubleshooting skills, transforming beginners into professional technicians.
+                  </p>
                 </div>
-                <h2 className="text-3xl font-black uppercase tracking-tighter">Our <span className="text-primary underline underline-offset-8 decoration-2">Mission</span></h2>
               </div>
-              <p className="text-lg leading-relaxed text-muted-foreground font-medium border-l-2 border-primary/30 pl-8 italic">
-                To provide comprehensive, hands-on, and direct-to-the-point training that equips students with advanced diagnostics, microsoldering, and troubleshooting skills, transforming beginners into professional technicians.
-              </p>
+              
+              <div className="flex gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+                <div className="w-1.5 bg-white min-h-[120px] rounded-full shrink-0"></div>
+                <div className="pt-1">
+                  <h2 className="text-2xl font-black uppercase tracking-widest text-white mb-4">Vision</h2>
+                  <p className="text-muted-foreground text-sm leading-relaxed font-medium">
+                    To empower the next generation of expert cellphone technicians, setting the standard for professional board-level repair and innovation in the mobile industry.
+                  </p>
+                </div>
+              </div>
             </div>
-            
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="h-12 w-12 bg-accent/10 flex items-center justify-center border border-accent/20">
-                  <Compass className="h-6 w-6 text-accent" />
-                </div>
-                <h2 className="text-3xl font-black uppercase tracking-tighter">Our <span className="text-accent underline underline-offset-8 decoration-2">Vision</span></h2>
-              </div>
-              <p className="text-lg leading-relaxed text-muted-foreground font-medium border-l-2 border-accent/30 pl-8 italic">
-                To empower the next generation of expert cellphone technicians, setting the standard for professional board-level repair and innovation in the mobile industry.
-              </p>
+
+            <div className="relative h-[400px] lg:h-[500px] w-full border border-white/10 group overflow-hidden bg-card/20">
+              <Image 
+                src="https://picsum.photos/seed/hardtech-team/800/1000" 
+                alt="HardTech Instructors and Team" 
+                fill 
+                className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
+                data-ai-hint="technical team"
+              />
+              <div className="absolute inset-0 bg-primary/10 mix-blend-multiply" />
             </div>
           </div>
         </div>
@@ -149,8 +164,6 @@ export default function Home() {
       <section className="py-24 border-t border-white/5">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            
-            {/* News Section */}
             <div className="lg:col-span-2 space-y-12">
               <div className="flex items-center justify-between">
                 <h2 className="text-4xl font-black uppercase tracking-tighter">Latest <span className="text-primary">News</span></h2>
@@ -159,17 +172,15 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {newsItems.map((item, i) => (
                   <Card key={i} className="bg-card/40 border-white/5 overflow-hidden group rounded-none">
-                    {newsImage && (
-                      <div className="relative h-56 w-full grayscale group-hover:grayscale-0 transition-all duration-700">
-                        <Image 
-                          src={newsImage.imageUrl} 
-                          alt={item.title} 
-                          fill 
-                          className="object-cover transition-transform duration-700 group-hover:scale-105"
-                          data-ai-hint={newsImage.imageHint}
-                        />
-                      </div>
-                    )}
+                    <div className="relative h-56 w-full grayscale group-hover:grayscale-0 transition-all duration-700">
+                      <Image 
+                        src={`https://picsum.photos/seed/news-${i}/800/600`} 
+                        alt={item.title} 
+                        fill 
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        data-ai-hint="technology lab"
+                      />
+                    </div>
                     <CardHeader className="p-8">
                       <div className="flex gap-4 mb-4">
                         <Badge className="text-[9px] uppercase font-bold bg-primary/10 text-primary border-none rounded-none">{item.category}</Badge>
@@ -185,7 +196,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Events Sidebar */}
             <div className="space-y-12">
               <h2 className="text-4xl font-black uppercase tracking-tighter">Upcoming <span className="text-accent">Events</span></h2>
               <div className="space-y-4">
@@ -206,9 +216,7 @@ export default function Home() {
                 ))}
               </div>
               <div className="relative h-72 w-full rounded-none overflow-hidden group border border-white/10">
-                {eventImage && (
-                  <Image src={eventImage.imageUrl} alt="Event Background" fill className="object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-110" data-ai-hint={eventImage.imageHint} />
-                )}
+                <Image src="https://picsum.photos/seed/openday/800/600" alt="Event Background" fill className="object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-110" data-ai-hint="technical workshop" />
                 <div className="absolute inset-0 bg-primary/10 mix-blend-multiply" />
                 <div className="absolute inset-0 flex flex-col justify-end p-8 bg-gradient-to-t from-background via-background/40 to-transparent">
                   <p className="font-black text-white uppercase tracking-tighter text-xl mb-4 leading-none">Don't miss our Open Day</p>
@@ -216,7 +224,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
