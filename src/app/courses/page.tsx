@@ -56,6 +56,10 @@ export default function CourseCatalog() {
   );
 
   const getImageUrl = (imageId: string) => {
+    if (!imageId) return PlaceHolderImages[0].imageUrl;
+    // If it's a URL (starts with http), return it directly
+    if (imageId.startsWith('http')) return imageId;
+    // Otherwise look up the placeholder ID
     const found = PlaceHolderImages.find(img => img.id === imageId);
     return found ? found.imageUrl : PlaceHolderImages[0].imageUrl;
   };
