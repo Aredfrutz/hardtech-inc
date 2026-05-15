@@ -49,10 +49,8 @@ interface DraftCourse {
   };
   modules: { day: string; topic: string; details: string }[];
   faqs: { question: string; answer: string }[];
-  // Deferred Upload Props
   previewUrl?: string;
   pendingFile?: File;
-  isUploading?: boolean;
 }
 
 const INITIAL_DRAFTS: DraftCourse[] = [
@@ -285,87 +283,77 @@ export function SeedData() {
   const [drafts, setDrafts] = useState<DraftCourse[]>(INITIAL_DRAFTS);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<{current: number, total: number} | null>(null);
 
   /**
-   * Deferred Upload: Local Preview Only
-   * Instantly generate a blob URL for UI feedback.
+   * Local Staging Strategy: Update local state with blob URLs
    */
   const handleFileSelect = (draftId: string, file: File) => {
+    // Revoke previous blob URL if it exists to avoid memory leaks
+    const existing = drafts.find(d => d.id === draftId);
+    if (existing?.previewUrl) {
+      URL.revokeObjectURL(existing.previewUrl);
+    }
+
     const previewUrl = URL.createObjectURL(file);
     setDrafts(prev => prev.map(d => 
       d.id === draftId ? { 
         ...d, 
         previewUrl, 
         pendingFile: file,
-        imageId: '' // Reset any previous imageId to ensure we use the pending file
       } : d
     ));
-    toast({ title: "Preview Updated", description: "Local image attached. Ready for batch commit." });
+    toast({ title: "Local Preview Updated", description: "Image staged in memory." });
   };
 
   /**
-   * Batch Upload & Firestore Write
-   * Uploads all pending files sequentially then executes Firestore batch.
+   * Batch Sync: Sequential/Parallel Uploads then Atomic Firestore Write
    */
   const handleSeedDatabase = async () => {
     if (!firestore || !storage) return;
 
     setIsSeeding(true);
-    setUploadProgress({ current: 0, total: drafts.length });
 
     try {
-      const finalCourseData: any[] = [];
-
-      // 1. Sequential Sequential Media Uploads
-      for (let i = 0; i < drafts.length; i++) {
-        const draft = drafts[i];
+      // 1. Parallel Upload Process
+      const uploadPromises = drafts.map(async (draft) => {
         let finalImageId = draft.imageId;
 
         if (draft.pendingFile) {
-          const storageRef = ref(storage, `seed_images/${draft.id}_${Date.now()}_${draft.pendingFile.name}`);
+          const storageRef = ref(storage, `seed_images/${draft.id}_${Date.now()}`);
           const snapshot = await uploadBytes(storageRef, draft.pendingFile);
           finalImageId = await getDownloadURL(snapshot.ref);
         }
 
-        finalCourseData.push({
-          title: draft.title,
-          summary: draft.summary,
-          description: draft.description,
-          durationHours: draft.durationHours,
-          ncLevel: draft.ncLevel,
-          status: draft.status,
-          imageId: finalImageId,
-          instructorIds: draft.instructorIds,
-          prerequisites: draft.prerequisites,
-          requiredTools: draft.requiredTools,
-          fees: draft.fees,
-          modules: draft.modules,
-          faqs: draft.faqs,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
+        return {
+          ...draft,
+          imageId: finalImageId
+        };
+      });
 
-        setUploadProgress({ current: i + 1, total: drafts.length });
-      }
+      const finalizedDrafts = await Promise.all(uploadPromises);
 
       // 2. Atomic Firestore WriteBatch
       const batch = writeBatch(firestore);
-      finalCourseData.forEach((data) => {
+      finalizedDrafts.forEach((data) => {
         const courseRef = doc(collection(firestore, 'courses'));
-        batch.set(courseRef, data);
+        const { id, previewUrl, pendingFile, ...cleanData } = data; // Remove UI helper props
+        batch.set(courseRef, {
+          ...cleanData,
+          title: data.title,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
       });
 
       await batch.commit();
 
-      // 3. Cleanup & Success
-      toast({ title: "Registry Synchronized", description: "10 Curricula successfully committed to Firestore." });
-      setIsPreviewOpen(false);
-      
-      // Cleanup blob URLs to prevent memory leaks
+      // 3. Cleanup: Revoke all object URLs
       drafts.forEach(d => {
         if (d.previewUrl) URL.revokeObjectURL(d.previewUrl);
       });
+
+      toast({ title: "Registry Synchronized", description: "10 technical programs committed to cloud." });
+      setIsPreviewOpen(false);
 
     } catch (error) {
       console.error("Batch seed error:", error);
@@ -374,10 +362,9 @@ export function SeedData() {
         operation: 'create',
         requestResourceData: { count: drafts.length }
       }));
-      toast({ title: "Sync Failed", description: "Batch operation aborted during network transfer.", variant: "destructive" });
+      toast({ title: "Sync Failed", description: "Check console for details.", variant: "destructive" });
     } finally {
       setIsSeeding(false);
-      setUploadProgress(null);
     }
   };
 
@@ -389,34 +376,34 @@ export function SeedData() {
       <div className="bg-primary/10 px-6 py-3 flex items-center justify-between border-b border-primary/20">
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Deferred Upload Hub</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Local Staging Hub</span>
         </div>
       </div>
       <CardContent className="p-6 space-y-4">
         <div className="space-y-1">
-          <p className="text-[10px] uppercase font-bold text-muted-foreground opacity-60">Technical Prep Portal</p>
+          <p className="text-[10px] uppercase font-bold text-muted-foreground opacity-60">Manual Prep Strategy</p>
           <p className="text-xs font-medium leading-relaxed">
-            Attach all program imagery locally first. The batch commit will execute all cloud uploads and registry synchronization in a single workflow.
+            Attach real hardware imagery locally. The master sync executes all uploads and commits in one atomic step.
           </p>
         </div>
 
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
           <DialogTrigger asChild>
             <Button className="w-full h-12 rounded-none bg-primary text-black font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-primary/20 hover:bg-white transition-all">
-              <LayoutGrid className="mr-2 h-4 w-4" /> Open Prep Workspace
+              <LayoutGrid className="mr-2 h-4 w-4" /> Open Registry Staging
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[90vw] h-[90vh] bg-card border-primary/20 flex flex-col p-0 rounded-none overflow-hidden">
             <DialogHeader className="p-8 border-b bg-secondary/20">
               <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                 <div>
-                  <DialogTitle className="text-3xl font-black uppercase tracking-tighter">Deferred Sync <span className="text-primary">Terminal</span></DialogTitle>
+                  <DialogTitle className="text-3xl font-black uppercase tracking-tighter">Registry <span className="text-primary">Staging</span></DialogTitle>
                   <p className="text-[10px] uppercase font-bold tracking-widest mt-2 flex items-center gap-2">
                     {readyToSeed ? (
-                      <span className="text-primary flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> READY: All 10 media parts prepared locally.</span>
+                      <span className="text-primary flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> READY: All media parts staged locally.</span>
                     ) : (
                       <span className="text-amber-500 flex items-center gap-2">
-                        <AlertCircle className="h-3 w-3" /> PENDING: {pendingCount} entries require imagery.
+                        <AlertCircle className="h-3 w-3" /> PENDING: {pendingCount} entries require local imagery.
                       </span>
                     )}
                   </p>
@@ -428,9 +415,8 @@ export function SeedData() {
                     className="bg-primary text-black font-black uppercase text-xs h-14 px-12 rounded-none tracking-widest disabled:opacity-30 w-full"
                   >
                     {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
-                    {isSeeding ? `Uploading (${uploadProgress?.current}/${uploadProgress?.total})...` : 'Execute Final Batch Seed'}
+                    {isSeeding ? 'Executing Batch Sync...' : 'Execute Final Batch Seed'}
                   </Button>
-                  {isSeeding && <span className="text-[8px] uppercase font-bold text-primary animate-pulse tracking-widest">Committing Transmissions to Cloud</span>}
                 </div>
               </div>
             </DialogHeader>
@@ -451,12 +437,7 @@ export function SeedData() {
                       ) : (
                         <div className="flex flex-col items-center gap-2 opacity-30">
                           <ImageIcon className="h-8 w-8" />
-                          <span className="text-[8px] uppercase font-bold">No Image Attached</span>
-                        </div>
-                      )}
-                      {draft.pendingFile && !isSeeding && (
-                        <div className="absolute top-2 right-2">
-                           <Badge className="bg-primary text-black font-bold text-[8px] uppercase rounded-none border-none">Local Ready</Badge>
+                          <span className="text-[8px] uppercase font-bold">No Local Media</span>
                         </div>
                       )}
                     </div>
@@ -495,9 +476,3 @@ export function SeedData() {
     </Card>
   );
 }
-
-const Badge = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${className}`}>
-    {children}
-  </span>
-);
