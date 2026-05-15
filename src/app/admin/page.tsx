@@ -1,9 +1,11 @@
+
 "use client"
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { generateCourseContent, AdminCourseDescriptionOutput } from '@/ai/flows/admin-course-description-generator';
-import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useUser, useCollection, useMemoFirebase, useStorage } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,14 +14,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Save, Loader2, Wand2, Lock, Plus, Trash2, FileEdit, RefreshCw } from 'lucide-react';
+import { Sparkles, Save, Loader2, Wand2, Lock, Plus, Trash2, FileEdit, RefreshCw, Image as ImageIcon, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AdminDashboard() {
   const { firestore } = useFirestore();
+  const storage = useStorage();
   const { user, loading: userLoading } = useUser();
   const { toast } = useToast();
   
@@ -31,6 +35,11 @@ export default function AdminDashboard() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [activeMode, setActiveMode] = useState<'ai' | 'manual'>('ai');
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Image Upload States
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
   // Fetch Officials for selection
   const officialsQuery = useMemoFirebase(() => {
@@ -47,7 +56,7 @@ export default function AdminDashboard() {
   const { data: existingCourses } = useCollection(coursesQuery);
 
   // Manual / AI Content State
-  const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number; selectedInstructorIds: string[] }>>({
+  const [courseData, setCourseData] = useState<Partial<AdminCourseDescriptionOutput & { tuition: number; materials: number; duration: number; selectedInstructorIds: string[]; currentImageId?: string }>>({
     courseTitle: '',
     description: '',
     summary: '',
@@ -61,6 +70,13 @@ export default function AdminDashboard() {
     duration: 40,
     selectedInstructorIds: []
   });
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    };
+  }, [imagePreviewUrl]);
 
   if (userLoading) return null;
 
@@ -94,6 +110,9 @@ export default function AdminDashboard() {
     });
     setKeywords('');
     setEditingId(null);
+    setPendingImageFile(null);
+    if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    setImagePreviewUrl(null);
   };
 
   const handleSelectCourseToEdit = (courseId: string) => {
@@ -101,6 +120,10 @@ export default function AdminDashboard() {
     if (!course) return;
 
     setEditingId(courseId);
+    setPendingImageFile(null);
+    if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    setImagePreviewUrl(null);
+
     setCourseData({
       courseTitle: course.title,
       summary: course.summary,
@@ -113,7 +136,8 @@ export default function AdminDashboard() {
       tuition: course.fees?.tuition || 0,
       materials: course.fees?.materials || 0,
       duration: course.durationHours || 40,
-      selectedInstructorIds: course.instructorIds || []
+      selectedInstructorIds: course.instructorIds || [],
+      currentImageId: course.imageId
     });
     toast({ title: "Program Loaded", description: "You are now editing an existing curriculum entry." });
   };
@@ -138,49 +162,72 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+      const preview = URL.createObjectURL(file);
+      setPendingImageFile(file);
+      setImagePreviewUrl(preview);
+    }
+  };
+
   const handlePublish = async () => {
     if (!firestore || !courseData.courseTitle) return;
     setIsPublishing(true);
 
-    const finalData = {
-      title: courseData.courseTitle,
-      summary: courseData.summary || '',
-      description: courseData.description || '',
-      ncLevel: courseData.ncLevel || 'NC II',
-      modules: courseData.modules || [],
-      prerequisites: courseData.prerequisites || [],
-      requiredTools: courseData.requiredTools || [],
-      faqs: courseData.faqs || [],
-      instructorIds: courseData.selectedInstructorIds || [],
-      fees: {
-        tuition: courseData.tuition || 0,
-        materials: courseData.materials || 0,
-        total: (courseData.tuition || 0) + (courseData.materials || 0)
-      },
-      durationHours: courseData.duration || 40,
-      status: "Active",
-      imageId: "hardware-chip",
-      updatedAt: serverTimestamp(),
-      ...(editingId ? {} : { createdAt: serverTimestamp() })
-    };
+    try {
+      let finalImageId = courseData.currentImageId || "hardware-chip";
 
-    const action = editingId 
-      ? updateDoc(doc(firestore, 'courses', editingId), finalData)
-      : addDoc(collection(firestore, 'courses'), finalData);
+      // Handle Image Upload if a new file is pending
+      if (pendingImageFile && storage) {
+        const storageRef = ref(storage, `course_images/${Date.now()}_${pendingImageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, pendingImageFile);
+        finalImageId = await getDownloadURL(snapshot.ref);
+      }
 
-    action
-      .then(() => {
-        toast({ title: editingId ? "Program Updated!" : "Program Published!", description: "Curriculum registry synchronized." });
-        resetForm();
-      })
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: editingId ? `courses/${editingId}` : 'courses',
-          operation: editingId ? 'update' : 'create',
-          requestResourceData: finalData
-        }));
-      })
-      .finally(() => setIsPublishing(false));
+      const finalData = {
+        title: courseData.courseTitle,
+        summary: courseData.summary || '',
+        description: courseData.description || '',
+        ncLevel: courseData.ncLevel || 'NC II',
+        modules: courseData.modules || [],
+        prerequisites: courseData.prerequisites || [],
+        requiredTools: courseData.requiredTools || [],
+        faqs: courseData.faqs || [],
+        instructorIds: courseData.selectedInstructorIds || [],
+        fees: {
+          tuition: courseData.tuition || 0,
+          materials: courseData.materials || 0,
+          total: (courseData.tuition || 0) + (courseData.materials || 0)
+        },
+        durationHours: courseData.duration || 40,
+        status: "Active",
+        imageId: finalImageId,
+        updatedAt: serverTimestamp(),
+        ...(editingId ? {} : { createdAt: serverTimestamp() })
+      };
+
+      const action = editingId 
+        ? updateDoc(doc(firestore, 'courses', editingId), finalData)
+        : addDoc(collection(firestore, 'courses'), finalData);
+
+      await action;
+      
+      toast({ 
+        title: editingId ? "Program Updated!" : "Program Published!", 
+        description: "Curriculum registry synchronized." 
+      });
+      resetForm();
+    } catch (error: any) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: editingId ? `courses/${editingId}` : 'courses',
+        operation: editingId ? 'update' : 'create',
+        requestResourceData: courseData
+      }));
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const updateModule = (index: number, field: string, value: string) => {
@@ -317,6 +364,7 @@ export default function AdminDashboard() {
                   <TabsTrigger value="description" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Profile</TabsTrigger>
                   <TabsTrigger value="curriculum" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Syllabus</TabsTrigger>
                   <TabsTrigger value="faculty" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Faculty</TabsTrigger>
+                  <TabsTrigger value="media" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Media</TabsTrigger>
                   <TabsTrigger value="logistics" className="px-8 rounded-none h-full text-[10px] font-bold uppercase tracking-widest">Logistics</TabsTrigger>
                 </TabsList>
                 
@@ -415,6 +463,67 @@ export default function AdminDashboard() {
                     </div>
                   </TabsContent>
 
+                  <TabsContent value="media" className="mt-0 space-y-8">
+                    <h4 className="text-[10px] uppercase font-bold text-primary tracking-widest">Program Assets</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Current / New Preview</Label>
+                        <div className="relative aspect-video w-full border-2 border-dashed border-primary/20 bg-secondary/10 flex items-center justify-center group overflow-hidden">
+                          {imagePreviewUrl || courseData.currentImageId ? (
+                            <Image 
+                              src={imagePreviewUrl || courseData.currentImageId || ""} 
+                              alt="Course preview" 
+                              fill 
+                              className="object-cover grayscale"
+                            />
+                          ) : (
+                            <div className="text-center space-y-2 opacity-30">
+                              <ImageIcon className="h-10 w-10 mx-auto" />
+                              <p className="text-[8px] uppercase font-bold">No Image Attached</p>
+                            </div>
+                          )}
+                          {(imagePreviewUrl || pendingImageFile) && (
+                            <Button 
+                              variant="destructive" 
+                              size="icon" 
+                              className="absolute top-2 right-2 h-8 w-8 rounded-none z-10"
+                              onClick={() => {
+                                setPendingImageFile(null);
+                                if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+                                setImagePreviewUrl(null);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-center space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-muted-foreground">Staged Asset Upload</Label>
+                          <p className="text-[10px] text-muted-foreground italic">
+                            Select a local file to replace the program thumbnail. Upload occurs upon final registry update.
+                          </p>
+                        </div>
+                        <input 
+                          type="file" 
+                          ref={fileInputRef}
+                          onChange={handleFileSelect}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <Button 
+                          onClick={() => fileInputRef.current?.click()}
+                          variant="outline"
+                          className="w-full h-12 rounded-none uppercase text-[10px] font-bold border-primary/30 text-primary bg-primary/5 hover:bg-primary/10"
+                        >
+                          <Upload className="h-4 w-4 mr-2" /> 
+                          {imagePreviewUrl ? "Replace Staged Image" : "Attach New Image"}
+                        </Button>
+                      </div>
+                    </div>
+                  </TabsContent>
+
                   <TabsContent value="logistics" className="mt-0 space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-4">
@@ -422,7 +531,7 @@ export default function AdminDashboard() {
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                              <span className="text-9px uppercase font-bold opacity-50">NC Level</span>
+                              <span className="text-[9px] uppercase font-bold opacity-50">NC Level</span>
                               <Input 
                                 value={courseData.ncLevel || ''} 
                                 onChange={(e) => setCourseData({...courseData, ncLevel: e.target.value})}
@@ -430,7 +539,7 @@ export default function AdminDashboard() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <span className="text-9px uppercase font-bold opacity-50">Hours</span>
+                              <span className="text-[9px] uppercase font-bold opacity-50">Hours</span>
                               <Input 
                                 type="number"
                                 value={courseData.duration || 40} 
@@ -445,7 +554,7 @@ export default function AdminDashboard() {
                         <Label className="text-[10px] uppercase font-bold text-accent">Investment Registry (PHP)</Label>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <span className="text-9px uppercase font-bold opacity-50">Tuition</span>
+                            <span className="text-[9px] uppercase font-bold opacity-50">Tuition</span>
                             <Input 
                               type="number"
                               value={courseData.tuition || 0} 
@@ -454,7 +563,7 @@ export default function AdminDashboard() {
                             />
                           </div>
                           <div className="space-y-1">
-                            <span className="text-9px uppercase font-bold opacity-50">Materials</span>
+                            <span className="text-[9px] uppercase font-bold opacity-50">Materials</span>
                             <Input 
                               type="number"
                               value={courseData.materials || 0} 
