@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link';
-import Image from 'next/image'; // Added this import
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ const navLinks: NavLink[] = [
   { name: 'PROGRAMS', href: '/courses', studentOnly: true },
   { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
   { name: 'ANNOUNCEMENTS', href: '/announcements' },
-  { name: 'OFFICIAL LISTS', href: '/officials' },
+  { name: 'OFFICIALS LIST', href: '/officials' },
   { name: 'PROGRAM', href: '/admin', adminOnly: true },
 ];
 
@@ -72,7 +72,6 @@ export function Navbar() {
     <nav className="w-full bg-[#0a0a0a]/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50">
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
         
-        {/* Updated Logo Section */}
         <Link href="/" className="flex items-center gap-3 group">
           <Image 
             src="/logo.jpg" 
@@ -87,7 +86,6 @@ export function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop Menu */}
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-6">
             {visibleLinks.map((link) => {

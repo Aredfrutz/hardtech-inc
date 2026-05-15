@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from 'next/link';
@@ -180,7 +179,7 @@ export default function Home() {
             {/* Right Column: Academy Resources (Officials & Forms) */}
             <div className="space-y-12">
               <div className="space-y-8">
-                <h2 className="text-4xl font-black uppercase tracking-tighter">Official <span className="text-accent">Lists</span></h2>
+                <h2 className="text-4xl font-black uppercase tracking-tighter">Officials <span className="text-accent">List</span></h2>
                 <div className="space-y-4">
                   {officialsLoading ? (
                     <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-accent" /></div>

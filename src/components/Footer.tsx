@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image'; // Added this import
+import Image from 'next/image';
 import { Cpu } from 'lucide-react';
 
 export function Footer() {
@@ -9,8 +9,6 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 text-black">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              
-              {/* Updated Logo Section */}
               <Image 
                 src="/logo.jpg" 
                 alt="HardTech Logo" 
@@ -18,7 +16,6 @@ export function Footer() {
                 height={32} 
                 className="rounded-full border border-primary object-cover h-8 w-8" 
               />
-              
               <div className="flex flex-col">
                 <span className="font-bold text-xs tracking-widest leading-none">HARDTECH</span>
                 <span className="text-[8px] font-medium tracking-tighter text-muted-foreground uppercase">Information Technology</span>
@@ -35,6 +32,7 @@ export function Footer() {
               <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
               <li><Link href="/forum" className="hover:text-primary transition-colors">Public Service Forum</Link></li>
               <li><Link href="/announcements" className="hover:text-primary transition-colors">Announcements</Link></li>
+              <li><Link href="/officials" className="hover:text-primary transition-colors">Officials List</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>
