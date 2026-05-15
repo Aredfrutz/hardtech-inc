@@ -17,7 +17,6 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import Link from 'next/link';
-import { SeedData } from '@/components/SeedData';
 
 export default function AdminDashboard() {
   const { firestore } = useFirestore();
@@ -219,8 +218,6 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-4 space-y-6">
-          <SeedData />
-
           <Card className="bg-card border-primary/20 border-2 rounded-none shadow-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 uppercase text-sm tracking-widest">
