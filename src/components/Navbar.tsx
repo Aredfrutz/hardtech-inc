@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { LogIn, LogOut, LayoutDashboard, BookOpen, MessageSquare, ClipboardList, Megaphone } from 'lucide-react';
+import { LogIn, LogOut, LayoutDashboard, BookOpen, MessageSquare, ClipboardList, Megaphone, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/firebase';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -44,6 +44,7 @@ export function Navbar() {
     { name: 'PROGRAMS', href: '/courses', icon: <BookOpen className="h-3 w-3" />, studentOnly: true },
     { name: 'FORMS', href: '/forms', icon: <ClipboardList className="h-3 w-3" /> },
     { name: 'ANNOUNCEMENTS', href: '/announcements', icon: <Megaphone className="h-3 w-3" /> },
+    { name: 'OFFICIALS LIST', href: '/officials', icon: <Users className="h-3 w-3" /> },
     { name: 'PROGRAM REGISTRY', href: '/admin', icon: <BookOpen className="h-3 w-3" />, adminOnly: true },
   ];
 
