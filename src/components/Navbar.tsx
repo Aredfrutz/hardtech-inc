@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from 'next/link';
@@ -5,7 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { LogIn, LogOut, ShieldAlert } from 'lucide-react';
+import { LogIn, LogOut, LayoutDashboard, BookOpen, MessageSquare, ClipboardList, Megaphone } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/firebase';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -23,18 +24,11 @@ import { useToast } from '@/hooks/use-toast';
 interface NavLink {
   name: string;
   href: string;
+  icon: React.ReactNode;
   hideForAdmin?: boolean;
   adminOnly?: boolean;
   studentOnly?: boolean;
 }
-
-const navLinks: NavLink[] = [
-  { name: 'PROGRAMS', href: '/courses', studentOnly: true },
-  { name: 'PUBLIC SERVICE FORMS', href: '/forms' },
-  { name: 'ANNOUNCEMENTS', href: '/announcements' },
-  { name: 'OFFICIALS LIST', href: '/officials' },
-  { name: 'PROGRAM', href: '/admin', adminOnly: true },
-];
 
 export function Navbar() {
   const pathname = usePathname();
@@ -44,6 +38,14 @@ export function Navbar() {
   
   const { user, login, logout } = useAuth();
   const { toast } = useToast();
+
+  const navLinks: NavLink[] = [
+    { name: 'DASHBOARD', href: '/dashboard', icon: <LayoutDashboard className="h-3 w-3" />, studentOnly: true },
+    { name: 'PROGRAMS', href: '/courses', icon: <BookOpen className="h-3 w-3" />, studentOnly: true },
+    { name: 'FORMS', href: '/forms', icon: <ClipboardList className="h-3 w-3" /> },
+    { name: 'ANNOUNCEMENTS', href: '/announcements', icon: <Megaphone className="h-3 w-3" /> },
+    { name: 'PROGRAM REGISTRY', href: '/admin', icon: <BookOpen className="h-3 w-3" />, adminOnly: true },
+  ];
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +66,6 @@ export function Navbar() {
   const visibleLinks = navLinks.filter(link => {
     if (link.adminOnly && user?.role !== 'admin') return false;
     if (link.studentOnly && user?.role !== 'student') return false;
-    if (link.hideForAdmin && user?.role === 'admin') return false;
     return true;
   });
 
@@ -87,7 +88,7 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-6">
             {visibleLinks.map((link) => {
               const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
               return (
@@ -95,10 +96,11 @@ export function Navbar() {
                   key={link.name}
                   href={link.href}
                   className={cn(
-                    "text-[10px] font-bold transition-all hover:text-primary uppercase tracking-widest px-1 relative py-1",
+                    "text-[10px] font-bold transition-all hover:text-primary uppercase tracking-widest px-1 relative py-1 flex items-center gap-2",
                     isActive ? "text-primary after:content-[''] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:bg-primary" : "text-muted-foreground"
                   )}
                 >
+                  {link.icon}
                   {link.name}
                 </Link>
               );
@@ -126,7 +128,7 @@ export function Navbar() {
                 <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
                   <DialogTrigger asChild>
                     <Button variant="ghost" className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest px-4 border border-white/10 hover:border-primary/50 h-9 rounded-none">
-                      LOG IN
+                      <LogIn className="h-3 w-3 mr-2" /> LOG IN
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[400px] rounded-none border-primary bg-card">

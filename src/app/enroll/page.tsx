@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, Suspense } from 'react';
@@ -8,190 +9,233 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { User, Mail, Phone, BookOpen, Send, CheckCircle2 } from 'lucide-react';
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  BookOpen, 
+  Send, 
+  CheckCircle2, 
+  ArrowRight, 
+  ArrowLeft,
+  Wrench,
+  ShieldCheck,
+  Zap
+} from 'lucide-react';
 
 function EnrollmentFormContent() {
   const searchParams = useSearchParams();
   const initialCourse = searchParams.get('course') || '';
   const { toast } = useToast();
+  
+  const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  // Form State
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    course: initialCourse,
+    experience: '',
+    terms: false
+  });
+
+  const updateField = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (step < 3) {
+      setStep(step + 1);
+      return;
+    }
+
     setIsSubmitting(true);
-    
-    // Simulate API call
+    // Simulation
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     setIsSubmitting(false);
     setSubmitted(true);
     toast({
-      title: "Application Submitted",
-      description: "We've received your enrollment request. Our admissions team will review it shortly.",
+      title: "Transmission Successful",
+      description: "Application logged in Academy Registry.",
     });
   };
 
   if (submitted) {
     return (
-      <div className="max-w-2xl mx-auto py-20 text-center">
-        <div className="mb-8 flex justify-center">
-          <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center">
+      <div className="max-w-2xl mx-auto py-32 text-center px-4">
+        <div className="mb-12 flex justify-center">
+          <div className="h-24 w-24 bg-primary/10 border-2 border-primary/20 rounded-full flex items-center justify-center">
             <CheckCircle2 className="h-12 w-12 text-primary" />
           </div>
         </div>
-        <h1 className="text-4xl font-bold mb-4">Thank You!</h1>
-        <p className="text-xl text-muted-foreground mb-8">
-          Your application for <strong>{initialCourse || 'your selected course'}</strong> has been received. 
-          Check your email for a confirmation and next steps.
+        <h1 className="text-4xl font-black mb-6 uppercase tracking-tighter">Registry Synchronized</h1>
+        <p className="text-muted-foreground mb-12 uppercase text-[10px] font-bold tracking-[0.2em] leading-relaxed">
+          Application for <strong className="text-white">{formData.course || 'Technical Program'}</strong> received.<br />
+          Reference: <span className="text-primary">HT-APL-{Math.floor(Math.random() * 900000) + 100000}</span>
         </p>
-        <Button asChild size="lg" className="bg-primary text-primary-foreground">
-          <a href="/">Return Home</a>
+        <Button asChild size="lg" className="bg-primary text-black font-bold uppercase tracking-widest rounded-none h-14 px-12">
+          <a href="/">Return to Home</a>
         </Button>
       </div>
     );
   }
 
+  const progress = (step / 3) * 100;
+
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-      <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold mb-4 font-headline">Join <span className="text-primary">HardTech Academy</span></h1>
-        <p className="text-muted-foreground">Complete the form below to begin your journey. All applications are reviewed for technical readiness.</p>
+    <div className="max-w-4xl mx-auto py-20 px-4">
+      <div className="mb-16 text-center space-y-4">
+        <h1 className="text-5xl font-black mb-4 font-headline uppercase tracking-tighter">
+          Pioneer <span className="text-primary">Enrollment</span>
+        </h1>
+        <p className="text-muted-foreground uppercase text-[10px] font-bold tracking-widest opacity-60">
+          Professional Hardware Repair Certification Registry
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2">
-          <Card className="bg-card border-border/50">
-            <CardHeader>
-              <CardTitle>Enrollment Application</CardTitle>
-              <CardDescription>All fields are required unless marked optional.</CardDescription>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="lg:col-span-8">
+          <div className="mb-8 space-y-2">
+             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest mb-2">
+                <span className="text-primary">Step {step} of 3</span>
+                <span className="text-muted-foreground">{step === 1 ? 'Personal Profile' : step === 2 ? 'Technical Background' : 'Course Selection'}</span>
+             </div>
+             <Progress value={progress} className="h-1 bg-secondary rounded-none" />
+          </div>
+
+          <Card className="bg-card border-white/5 rounded-none shadow-2xl overflow-hidden">
+            <CardHeader className="bg-secondary/10 p-8 border-b border-white/5">
+              <CardTitle className="text-xl uppercase tracking-tight flex items-center gap-3">
+                 {step === 1 && <User className="h-5 w-5 text-primary" />}
+                 {step === 2 && <Wrench className="h-5 w-5 text-primary" />}
+                 {step === 3 && <ShieldCheck className="h-5 w-5 text-primary" />}
+                 {step === 1 ? 'Operator Identity' : step === 2 ? 'Technical Assessment' : 'Curriculum Selection'}
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="first-name">First Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input id="first-name" placeholder="Jane" className="pl-10" required />
+                {step === 1 && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">First Name</Label>
+                        <Input value={formData.firstName} onChange={e => updateField('firstName', e.target.value)} required className="h-12 bg-secondary/20 border-white/10 rounded-none focus:border-primary" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Last Name</Label>
+                        <Input value={formData.lastName} onChange={e => updateField('lastName', e.target.value)} required className="h-12 bg-secondary/20 border-white/10 rounded-none focus:border-primary" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Email Address</Label>
+                      <Input type="email" value={formData.email} onChange={e => updateField('email', e.target.value)} required className="h-12 bg-secondary/20 border-white/10 rounded-none focus:border-primary" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Phone Number</Label>
+                      <Input value={formData.phone} onChange={e => updateField('phone', e.target.value)} required className="h-12 bg-secondary/20 border-white/10 rounded-none focus:border-primary" />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="last-name">Last Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input id="last-name" placeholder="Doe" className="pl-10" required />
+                )}
+
+                {step === 2 && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Experience Level (Electronics/IT)</Label>
+                      <Select defaultValue="beginner" onValueChange={val => updateField('experienceLevel', val)}>
+                        <SelectTrigger className="h-12 bg-secondary/20 border-white/10 rounded-none">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card border-white/10">
+                          <SelectItem value="beginner">Entry Level (No Experience)</SelectItem>
+                          <SelectItem value="intermediate">Intermediate (Basic Repair Skills)</SelectItem>
+                          <SelectItem value="advanced">Advanced (Micro-soldering Skills)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Detailed Background / Motivation</Label>
+                      <Textarea value={formData.experience} onChange={e => updateField('experience', e.target.value)} className="min-h-[150px] bg-secondary/20 border-white/10 rounded-none focus:border-primary" required />
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="email" type="email" placeholder="jane.doe@example.com" className="pl-10" required />
+                {step === 3 && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground">Select Target Program</Label>
+                      <Select defaultValue={formData.course} onValueChange={val => updateField('course', val)}>
+                        <SelectTrigger className="h-12 bg-secondary/20 border-white/10 rounded-none">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card border-white/10">
+                          <SelectItem value="logic-board">iPhone Logic Board Repair</SelectItem>
+                          <SelectItem value="micro-soldering">Advanced Micro-Soldering</SelectItem>
+                          <SelectItem value="macbook">MacBook Power Management</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-start space-x-3 pt-4 p-4 bg-primary/5 border border-primary/20">
+                      <Checkbox id="terms" checked={formData.terms} onCheckedChange={val => updateField('terms', val)} required className="mt-1" />
+                      <label htmlFor="terms" className="text-[10px] font-bold uppercase tracking-tight leading-relaxed opacity-70">
+                        I confirm that the data provided is accurate and I agree to the Academy's technical code of conduct.
+                      </label>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" className="pl-10" required />
-                  </div>
+                <div className="flex justify-between pt-8 border-t border-white/5">
+                  <Button type="button" variant="ghost" disabled={step === 1} onClick={() => setStep(step - 1)} className="text-[10px] font-bold uppercase tracking-widest hover:text-primary disabled:opacity-30">
+                    <ArrowLeft className="h-3 w-3 mr-2" /> Back
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting} className="bg-primary text-black font-bold uppercase text-[10px] tracking-widest px-8 rounded-none h-12">
+                    {isSubmitting ? 'Syncing...' : step === 3 ? 'Execute Enrollment' : 'Next Protocol'}
+                    <ArrowRight className="h-3 w-3 ml-2" />
+                  </Button>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="course">Select Program</Label>
-                  <Select defaultValue={initialCourse}>
-                    <SelectTrigger className="w-full bg-secondary/30">
-                      <SelectValue placeholder="Choose a course" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ai-engineering">Advanced AI & Machine Learning</SelectItem>
-                      <SelectItem value="robotics-systems">Industrial Robotics & Automation</SelectItem>
-                      <SelectItem value="full-stack-hardtech">High-Performance Systems Engineering</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="experience">Relevant Experience</Label>
-                  <Textarea 
-                    id="experience" 
-                    placeholder="Briefly describe your technical background or current role..." 
-                    className="min-h-[120px] bg-secondary/30"
-                    required
-                  />
-                </div>
-
-                <div className="flex items-start space-x-2 py-4">
-                  <Checkbox id="terms" required />
-                  <label 
-                    htmlFor="terms" 
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    I agree to the terms and conditions and the student code of conduct.
-                  </label>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-primary text-primary-foreground h-12 text-lg hover:bg-primary/90"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Processing Application..." : "Submit Application"}
-                  <Send className="ml-2 h-4 w-4" />
-                </Button>
               </form>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <div className="p-6 rounded-xl bg-secondary/50 border border-border">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-primary" /> Application Process
-            </h3>
-            <ul className="space-y-4">
-              <li className="flex gap-3">
-                <span className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">1</span>
-                <div>
-                  <p className="font-semibold text-sm">Submit Form</p>
-                  <p className="text-xs text-muted-foreground">Fill in your details and selected program.</p>
-                </div>
-              </li>
-              <li className="flex gap-3">
-                <span className="h-6 w-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                <div>
-                  <p className="font-semibold text-sm">Review</p>
-                  <p className="text-xs text-muted-foreground">Our instructors review your technical experience.</p>
-                </div>
-              </li>
-              <li className="flex gap-3">
-                <span className="h-6 w-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
-                <div>
-                  <p className="font-semibold text-sm">Assessment</p>
-                  <p className="text-xs text-muted-foreground">Short 15-min technical screening (if required).</p>
-                </div>
-              </li>
-              <li className="flex gap-3">
-                <span className="h-6 w-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">4</span>
-                <div>
-                  <p className="font-semibold text-sm">Payment</p>
-                  <p className="text-xs text-muted-foreground">Secure your spot with deposit or full payment.</p>
-                </div>
-              </li>
-            </ul>
-          </div>
+        <div className="lg:col-span-4 space-y-8">
+           <div className="p-8 bg-secondary/10 border border-white/5 space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/20 pb-2 flex items-center gap-2">
+                 <Zap className="h-3 w-3" /> Registration Path
+              </h3>
+              <ul className="space-y-8 relative">
+                {[1, 2, 3].map((s) => (
+                  <li key={s} className="flex gap-4 items-start relative z-10">
+                    <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${step >= s ? 'bg-primary text-black' : 'bg-white/10 text-white/30'}`}>
+                      {s}
+                    </div>
+                    <div className={step >= s ? 'opacity-100' : 'opacity-30'}>
+                      <p className="text-[10px] font-bold uppercase tracking-tight">Step {s}</p>
+                      <p className="text-[9px] text-muted-foreground uppercase">{s === 1 ? 'Identity' : s === 2 ? 'Technical' : 'Selection'}</p>
+                    </div>
+                  </li>
+                ))}
+                <div className="absolute left-[11px] top-2 bottom-2 w-[2px] bg-white/5 -z-0" />
+              </ul>
+           </div>
 
-          <div className="p-6 rounded-xl bg-accent/10 border border-accent/20">
-            <h4 className="font-bold mb-2">Need Help?</h4>
-            <p className="text-sm text-muted-foreground mb-4">Our admissions advisors are here to help you choose the right path.</p>
-            <Button variant="link" className="p-0 text-accent h-auto">Chat with us</Button>
-          </div>
+           <div className="p-8 bg-primary/5 border border-primary/10">
+              <p className="text-[10px] font-black uppercase text-primary mb-4 tracking-widest">Enrollment Support</p>
+              <p className="text-[11px] leading-relaxed uppercase opacity-70 font-bold">
+                Need technical guidance? Chat with our Admissions Faculty for program placement advice.
+              </p>
+              <Button variant="link" className="px-0 h-auto text-primary text-[10px] uppercase font-black mt-4 underline-offset-4 decoration-2">
+                Talk to an Expert
+              </Button>
+           </div>
         </div>
       </div>
     </div>
@@ -200,7 +244,7 @@ function EnrollmentFormContent() {
 
 export default function EnrollmentPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center items-center min-h-[50vh]">Loading...</div>}>
+    <Suspense fallback={<div className="flex justify-center items-center min-h-[50vh]"><Zap className="h-8 w-8 animate-pulse text-primary" /></div>}>
       <EnrollmentFormContent />
     </Suspense>
   );
